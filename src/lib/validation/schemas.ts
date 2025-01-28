@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+// Schema for job creation and update
 export const jobSchema = z.object({
   title: z.string()
     .min(5, 'Title must be at least 5 characters')
@@ -16,6 +17,7 @@ export const jobSchema = z.object({
   skills: z.array(z.string()).optional()
 });
 
+// Schema for proposal submission
 export const proposalSchema = z.object({
   content: z.string()
     .min(50, 'Proposal must be at least 50 characters')

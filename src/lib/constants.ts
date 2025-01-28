@@ -1,4 +1,4 @@
-// Authentication
+// Authentication error messages
 export const AUTH_ERROR_MESSAGES = {
   INVALID_CREDENTIALS: 'Invalid email or password',
   USER_EXISTS: 'An account with this email already exists',
@@ -6,14 +6,14 @@ export const AUTH_ERROR_MESSAGES = {
   GENERIC_ERROR: 'An error occurred. Please try again',
 } as const;
 
-// Validation
+// Validation constants
 export const VALIDATION = {
   PASSWORD_MIN_LENGTH: 6,
   NAME_MIN_LENGTH: 2,
   NAME_MAX_LENGTH: 50,
 } as const;
 
-// API Routes
+// API routes
 export const API_ROUTES = {
   AUTH: {
     SIGN_UP: '/auth/v1/signup',
@@ -26,7 +26,7 @@ export const API_ROUTES = {
   },
 } as const;
 
-// Navigation
+// Navigation routes
 export const ROUTES = {
   HOME: '/',
   SIGN_IN: '/signin',
@@ -43,7 +43,7 @@ export const ROUTES = {
   SETTINGS: '/settings',
 } as const;
 
-// Job Categories
+// Job categories
 export const JOB_CATEGORIES = [
   { id: 'design', name: 'Design' },
   { id: 'development', name: 'Development' },
@@ -51,7 +51,7 @@ export const JOB_CATEGORIES = [
   { id: 'writing', name: 'Writing' },
 ] as const;
 
-// User Roles
+// User roles
 export const USER_ROLES = {
   CLIENT: 'client',
   VENDOR: 'vendor'

@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "ES2020", // Specifies the ECMAScript target version
+    "useDefineForClassFields": true, // Enables class fields using define
+    "lib": ["ES2020", "DOM", "DOM.Iterable"], // Includes ES2020, DOM, and DOM Iterable library definitions
+    "module": "ESNext", // Specifies the module system
+    "skipLibCheck": true, // Skips type checking of declaration files
+
+    /* Bundler mode */
+    "moduleResolution": "bundler", // Uses bundler-style module resolution
+    "allowImportingTsExtensions": true, // Allows importing TypeScript files with .ts extensions
+    "isolatedModules": true, // Ensures each file can be compiled separately
+    "moduleDetection": "force", // Forces module detection
+    "noEmit": true, // Prevents emitting output files
+    "jsx": "react-jsx", // Specifies JSX syntax to be used
+
+    /* Linting */
+    "strict": true, // Enables all strict type checking options
+    "noUnusedLocals": true, // Reports errors on unused local variables
+    "noUnusedParameters": true, // Reports errors on unused function parameters
+    "noFallthroughCasesInSwitch": true // Reports errors for fallthrough cases in switch statements
+  },
+  "include": ["src"] // Includes the src directory in the compilation
+}

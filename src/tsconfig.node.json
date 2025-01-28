@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "ES2022", // Specifies the ECMAScript target version
+    "lib": ["ES2023"], // Includes ES2023 library definitions
+    "module": "ESNext", // Specifies the module system
+    "skipLibCheck": true, // Skips type checking of declaration files
+    
+    /* Bundler mode */
+    "moduleResolution": "bundler", // Uses bundler-style module resolution
+    "allowImportingTsExtensions": true, // Allows importing TypeScript files with .ts extensions
+    "isolatedModules": true, // Ensures each file can be compiled separately
+    "moduleDetection": "force", // Forces module detection
+    "noEmit": true, // Prevents emitting output files
+
+    /* Linting */
+    "strict": true, // Enables all strict type checking options
+    "noUnusedLocals": true, // Reports errors on unused local variables
+    "noUnusedParameters": true, // Reports errors on unused function parameters
+    "noFallthroughCasesInSwitch": true // Reports errors for fallthrough cases in switch statements
+  },
+  "include": ["vite.config.ts"] // Includes vite.config.ts in the compilation
+}

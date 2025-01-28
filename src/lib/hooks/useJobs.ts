@@ -3,19 +3,25 @@ import { supabase } from '../supabase';
 import { useToast } from './useToast';
 import { useAuth } from '../../contexts/AuthContext';
 
+// Custom hook to fetch and manage jobs
 export function useJobs(options = { limit: 10, page: 0 }) {
+  // State variables for jobs, loading, error, and total count
   const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [totalCount, setTotalCount] = useState(0);
+  // Get user from AuthContext
   const { user } = useAuth();
+  // Get addToast function from useToast hook
   const { addToast } = useToast();
 
+  // Function to fetch jobs from Supabase
   const fetchJobs = async () => {
     try {
       setLoading(true);
       setError(null);
 
+      // Create a base query for jobs
       let query = supabase
         .from('jobs')
         .select('*, users!jobs_client_id_fkey(full_name)', { count: 'exact' });
@@ -31,10 +37,12 @@ export function useJobs(options = { limit: 10, page: 0 }) {
         .range(from, from + options.limit - 1)
         .order('created_at', { ascending: false });
 
+      // Execute the query
       const { data, error, count } = await query;
 
       if (error) throw error;
 
+      // Update state with fetched data
       setJobs(data || []);
       if (count !== null) setTotalCount(count);
     } catch (err: any) {
@@ -46,6 +54,7 @@ export function useJobs(options = { limit: 10, page: 0 }) {
     }
   };
 
+  // Fetch jobs on mount and when options or user changes
   useEffect(() => {
     fetchJobs();
 
@@ -76,15 +85,18 @@ export function useJobs(options = { limit: 10, page: 0 }) {
       )
       .subscribe();
 
+    // Unsubscribe from the channel on unmount
     return () => {
       subscription.unsubscribe();
     };
   }, [user?.id, options.page, options.limit]);
 
+  // Function to refresh jobs
   const refresh = () => {
     fetchJobs();
   };
 
+  // Return jobs, loading, error, total count, and refresh function
   return {
     jobs,
     loading,

@@ -1,19 +1,22 @@
+/* Apply Tailwind base styles */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* Define custom base styles */
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 0 0% 100%; /* Default background color */
+    --foreground: 222.2 84% 4.9%; /* Default foreground color */
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 0 0% 100%;
+    --background: 222.2 84% 4.9%; /* Dark mode background color */
+    --foreground: 0 0% 100%; /* Dark mode foreground color */
   }
 }
 
+/* Apply background and text colors to the body */
 body {
   @apply bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-50;
 }
