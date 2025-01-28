@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, useMemo } from 'react';
+import { createContext, useContext, useEffect, useState, useMemo, useCallback } from 'react';
 import { User, AuthError } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import type { Database } from '../lib/database.types';
@@ -24,6 +24,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const CACHE_KEY = 'auth_user';
+const USER_DETAILS_CACHE = new Map<string, any>();
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserWithRole | null>(() => {
@@ -37,9 +38,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const { addToast } = useToast();
 
-  const fetchUserDetails = async (userId: string) => {
+  const fetchUserDetails = useCallback(async (userId: string) => {
     try {
       console.log('Fetching user details for:', userId);
+      
+      // Check if user details are cached
+      if (USER_DETAILS_CACHE.has(userId)) {
+        console.log('User details found in cache:', userId);
+        return USER_DETAILS_CACHE.get(userId);
+      }
+
       const { data, error } = await supabase
         .from('users')
         .select('role, full_name, avatar_url, availability_status')
@@ -51,12 +59,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw error;
       }
       console.log('User details fetched successfully:', data);
+      USER_DETAILS_CACHE.set(userId, data); // Cache the user details
       return data;
     } catch (error) {
       console.error('Error fetching user details:', error);
       return null;
     }
-  };
+  }, []);
 
   const handleAuthStateChange = async (event: string, session: any) => {
     try {
@@ -64,6 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
         setUser(null);
         localStorage.removeItem(CACHE_KEY);
+        USER_DETAILS_CACHE.clear(); // Clear cache on sign out
         return;
       }
 
@@ -75,11 +85,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         setUser(null);
         localStorage.removeItem(CACHE_KEY);
+        USER_DETAILS_CACHE.clear(); // Clear cache if no user
       }
     } catch (error) {
       console.error('Error handling auth state change:', error);
       setUser(null);
       localStorage.removeItem(CACHE_KEY);
+      USER_DETAILS_CACHE.clear(); // Clear cache on error
     }
   };
 
@@ -110,6 +122,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } else {
           setUser(null);
           localStorage.removeItem(CACHE_KEY);
+          USER_DETAILS_CACHE.clear(); // Clear cache if no user
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
@@ -118,6 +131,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         setUser(null);
         localStorage.removeItem(CACHE_KEY);
+        USER_DETAILS_CACHE.clear(); // Clear cache on error
       } finally {
         if (mounted) {
           setLoading(false);
@@ -136,7 +150,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [addToast]);
+  }, [addToast, fetchUserDetails]);
 
   const value = useMemo(() => ({
     user,
@@ -228,7 +242,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw error;
       }
     }
-  }), [user, loading, addToast]);
+  }), [user, loading, addToast, fetchUserDetails]);
 
   return (
     <AuthContext.Provider value={value}>
