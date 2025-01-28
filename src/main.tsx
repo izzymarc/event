@@ -1,4 +1,4 @@
-{/* Import necessary React components and CSS */}
+{/* Import necessary React components and styles */}
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
@@ -6,22 +6,24 @@ import './index.css';
 
 // Get the root element where the React app will be rendered
 const rootElement = document.getElementById('root');
+// Throw an error if the root element is not found
 if (!rootElement) throw new Error('Failed to find the root element');
 
-// Create a root for React 18
+// Create a root for the React app
 const root = createRoot(rootElement);
 
-// Wrap in try-catch to handle any initialization errors
+// Wrap the app rendering in a try-catch block to handle any initialization errors
 try {
-  // Render the main App component
+  // Render the app in strict mode
   root.render(
     <StrictMode>
       <App />
     </StrictMode>
   );
 } catch (error) {
-  // Log the error and render a fallback UI if rendering fails
+  // Log the error if rendering fails
   console.error('Failed to render app:', error);
+  // Render a fallback UI if rendering fails
   root.render(
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="text-center">

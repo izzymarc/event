@@ -1,9 +1,10 @@
+// Import necessary React hooks and Supabase client
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
 import { useToast } from './useToast';
 import { useAuth } from '../../contexts/AuthContext';
 
-// Custom hook to fetch and manage jobs
+// Define a custom hook for fetching and managing jobs
 export function useJobs(options = { limit: 10, page: 0 }) {
   // State variables for jobs, loading, error, and total count
   const [jobs, setJobs] = useState<any[]>([]);
@@ -18,10 +19,11 @@ export function useJobs(options = { limit: 10, page: 0 }) {
   // Function to fetch jobs from Supabase
   const fetchJobs = async () => {
     try {
+      // Set loading state to true and clear any previous errors
       setLoading(true);
       setError(null);
 
-      // Create a base query for jobs
+      // Build the Supabase query
       let query = supabase
         .from('jobs')
         .select('*, users!jobs_client_id_fkey(full_name)', { count: 'exact' });
@@ -40,22 +42,26 @@ export function useJobs(options = { limit: 10, page: 0 }) {
       // Execute the query
       const { data, error, count } = await query;
 
+      // Throw error if query fails
       if (error) throw error;
 
       // Update state with fetched data
       setJobs(data || []);
       if (count !== null) setTotalCount(count);
     } catch (err: any) {
+      // Log the error, set error state, and display a toast
       console.error('Error fetching jobs:', err);
       setError(err.message);
       addToast('Failed to load jobs', 'error');
     } finally {
+      // Set loading state to false
       setLoading(false);
     }
   };
 
-  // Fetch jobs on mount and when options or user changes
+  // useEffect hook to fetch jobs and set up real-time subscription
   useEffect(() => {
+    // Fetch jobs on mount
     fetchJobs();
 
     // Set up real-time subscription
@@ -96,7 +102,7 @@ export function useJobs(options = { limit: 10, page: 0 }) {
     fetchJobs();
   };
 
-  // Return jobs, loading, error, total count, and refresh function
+  // Return the state variables and refresh function
   return {
     jobs,
     loading,

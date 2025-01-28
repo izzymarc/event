@@ -1,3 +1,4 @@
+// Define a type for JSON data
 export type Json =
   | string
   | number
@@ -6,9 +7,11 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
+// Define an interface for the database schema
 export interface Database {
   public: {
     Tables: {
+      // Define the structure of the 'users' table
       users: {
         Row: {
           id: string
@@ -44,6 +47,7 @@ export interface Database {
           updated_at?: string
         }
       }
+      // Define the structure of the 'profiles' table
       profiles: {
         Row: {
           id: string
@@ -79,6 +83,7 @@ export interface Database {
           updated_at?: string
         }
       }
+      // Define the structure of the 'jobs' table
       jobs: {
         Row: {
           id: string
@@ -123,6 +128,7 @@ export interface Database {
           updated_at?: string
         }
       }
+      // Define the structure of the 'job_categories' table
       job_categories: {
         Row: {
           id: string
@@ -143,6 +149,7 @@ export interface Database {
           created_at?: string
         }
       }
+      // Define the structure of the 'job_skills' table
       job_skills: {
         Row: {
           id: string
@@ -163,6 +170,7 @@ export interface Database {
           created_at?: string
         }
       }
+      // Define the structure of the 'job_attachments' table
       job_attachments: {
         Row: {
           id: string

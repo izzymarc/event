@@ -1,4 +1,4 @@
-// Authentication error messages
+// Define constants for authentication error messages
 export const AUTH_ERROR_MESSAGES = {
   INVALID_CREDENTIALS: 'Invalid email or password',
   USER_EXISTS: 'An account with this email already exists',
@@ -6,14 +6,14 @@ export const AUTH_ERROR_MESSAGES = {
   GENERIC_ERROR: 'An error occurred. Please try again',
 } as const;
 
-// Validation constants
+// Define constants for validation rules
 export const VALIDATION = {
   PASSWORD_MIN_LENGTH: 6,
   NAME_MIN_LENGTH: 2,
   NAME_MAX_LENGTH: 50,
 } as const;
 
-// API routes
+// Define constants for API routes
 export const API_ROUTES = {
   AUTH: {
     SIGN_UP: '/auth/v1/signup',
@@ -26,7 +26,7 @@ export const API_ROUTES = {
   },
 } as const;
 
-// Navigation routes
+// Define constants for navigation routes
 export const ROUTES = {
   HOME: '/',
   SIGN_IN: '/signin',
@@ -43,7 +43,7 @@ export const ROUTES = {
   SETTINGS: '/settings',
 } as const;
 
-// Job categories
+// Define constants for job categories
 export const JOB_CATEGORIES = [
   { id: 'design', name: 'Design' },
   { id: 'development', name: 'Development' },
@@ -51,13 +51,13 @@ export const JOB_CATEGORIES = [
   { id: 'writing', name: 'Writing' },
 ] as const;
 
-// User roles
+// Define constants for user roles
 export const USER_ROLES = {
   CLIENT: 'client',
   VENDOR: 'vendor'
 } as const;
 
-// Permissions
+// Define constants for permissions
 export const PERMISSIONS = {
   CREATE_JOBS: 'create:jobs',
   MANAGE_JOBS: 'manage:jobs',

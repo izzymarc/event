@@ -39,7 +39,7 @@ const PrivateRoute = memo(({ children }: { children: React.ReactNode }) => {
   // Get user and loading state from AuthContext
   const { user, loading } = useAuth();
 
-  // Show loading spinner if authentication is in progress
+  // Show loading spinner if auth is still loading
   if (loading) {
     return <LoadingSpinner />;
   }
@@ -49,7 +49,7 @@ const PrivateRoute = memo(({ children }: { children: React.ReactNode }) => {
     return <Navigate to={ROUTES.SIGN_IN} replace />;
   }
 
-  // Render the children components if user is authenticated
+  // Render the children if user is authenticated
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -70,7 +70,7 @@ const PublicRoute = memo(({ children }: { children: React.ReactNode }) => {
   // Get user and loading state from AuthContext
   const { user, loading } = useAuth();
 
-  // Show loading spinner if authentication is in progress
+  // Show loading spinner if auth is still loading
   if (loading) {
     return <LoadingSpinner />;
   }
@@ -80,15 +80,15 @@ const PublicRoute = memo(({ children }: { children: React.ReactNode }) => {
     return <Navigate to={ROUTES.DASHBOARD} replace />;
   }
 
-  // Render the children components if user is not authenticated
+  // Render the children if user is not authenticated
   return <ErrorBoundary>{children}</ErrorBoundary>;
 });
 
 PublicRoute.displayName = 'PublicRoute';
 
-// Main App content component
+// Main app content component
 const AppContent = () => {
-  // Get toast messages and removeToast function from useToast hook
+  // Get toast functions from useToast hook
   const { toasts, removeToast } = useToast();
 
   return (
@@ -208,13 +208,11 @@ const AppContent = () => {
   );
 };
 
-// Main App component
+// Main App component that wraps the entire application
 export default function App() {
   return (
     <ErrorBoundary>
-      {/* Theme provider to manage theme state */}
       <ThemeProvider>
-        {/* Auth provider to manage authentication state */}
         <AuthProvider>
           <AppContent />
         </AuthProvider>
