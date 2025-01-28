@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../supabase';
 import { useToast } from './useToast';
 import { useAuth } from '../../contexts/AuthContext';
@@ -10,7 +10,7 @@ export function useProposals(jobId?: string) {
   const { user } = useAuth();
   const { addToast } = useToast();
 
-  const fetchProposals = async () => {
+  const fetchProposals = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -44,7 +44,12 @@ export function useProposals(jobId?: string) {
 
       const { data, error } = await query;
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching proposals:', error);
+        setError(error.message);
+        addToast('Failed to load proposals', 'error');
+        throw error;
+      }
 
       setProposals(data || []);
     } catch (err: any) {
@@ -54,10 +59,10 @@ export function useProposals(jobId?: string) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id, jobId, addToast]);
 
   useEffect(() => {
-    fetchJobs();
+    fetchProposals();
 
     // Set up real-time subscription
     const subscription = supabase
@@ -87,11 +92,11 @@ export function useProposals(jobId?: string) {
     return () => {
       subscription.unsubscribe();
     };
-  }, [user?.id, jobId]);
+  }, [fetchProposals, user?.id, jobId]);
 
-  const refresh = () => {
+  const refresh = useCallback(() => {
     fetchProposals();
-  };
+  }, [fetchProposals]);
 
   return {
     proposals,

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../supabase';
 import { useToast } from './useToast';
 
@@ -8,7 +8,7 @@ export function useJob(jobId: string) {
   const [error, setError] = useState<string | null>(null);
   const { addToast } = useToast();
 
-  const fetchJob = async () => {
+  const fetchJob = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -28,7 +28,12 @@ export function useJob(jobId: string) {
         .eq('id', jobId)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching job:', error);
+        setError(error.message);
+        addToast('Failed to load job details', 'error');
+        throw error;
+      }
 
       setJob(data);
     } catch (err: any) {
@@ -38,7 +43,7 @@ export function useJob(jobId: string) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [jobId, addToast]);
 
   useEffect(() => {
     fetchJob();
@@ -68,11 +73,11 @@ export function useJob(jobId: string) {
     return () => {
       subscription.unsubscribe();
     };
-  }, [jobId]);
+  }, [fetchJob, jobId]);
 
-  const refresh = () => {
+  const refresh = useCallback(() => {
     fetchJob();
-  };
+  }, [fetchJob]);
 
   return {
     job,

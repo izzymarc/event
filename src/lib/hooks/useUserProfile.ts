@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../supabase';
 import { useToast } from './useToast';
 
@@ -8,7 +8,7 @@ export function useUserProfile(userId: string) {
   const [error, setError] = useState<string | null>(null);
   const { addToast } = useToast();
 
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -27,7 +27,12 @@ export function useUserProfile(userId: string) {
         .eq('id', userId)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching profile:', error);
+        setError(error.message);
+        addToast('Failed to load user profile', 'error');
+        throw error;
+      }
 
       setProfile(data);
     } catch (err: any) {
@@ -37,7 +42,7 @@ export function useUserProfile(userId: string) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId, addToast]);
 
   useEffect(() => {
     fetchProfile();
@@ -62,11 +67,11 @@ export function useUserProfile(userId: string) {
     return () => {
       subscription.unsubscribe();
     };
-  }, [userId]);
+  }, [fetchProfile, userId]);
 
-  const refresh = () => {
+  const refresh = useCallback(() => {
     fetchProfile();
-  };
+  }, [fetchProfile]);
 
   return {
     profile,

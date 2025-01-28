@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../supabase';
 import { useToast } from './useToast';
 import { useAuth } from '../../contexts/AuthContext';
@@ -11,7 +11,7 @@ export function useJobs(options = { limit: 10, page: 0 }) {
   const { user } = useAuth();
   const { addToast } = useToast();
 
-  const fetchJobs = async () => {
+  const fetchJobs = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -33,7 +33,12 @@ export function useJobs(options = { limit: 10, page: 0 }) {
 
       const { data, error, count } = await query;
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching jobs:', error);
+        setError(error.message);
+        addToast('Failed to load jobs', 'error');
+        throw error;
+      }
 
       setJobs(data || []);
       if (count !== null) setTotalCount(count);
@@ -44,7 +49,7 @@ export function useJobs(options = { limit: 10, page: 0 }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id, options.page, options.limit, addToast]);
 
   useEffect(() => {
     fetchJobs();
@@ -79,11 +84,11 @@ export function useJobs(options = { limit: 10, page: 0 }) {
     return () => {
       subscription.unsubscribe();
     };
-  }, [user?.id, options.page, options.limit]);
+  }, [fetchJobs, user?.id]);
 
-  const refresh = () => {
+  const refresh = useCallback(() => {
     fetchJobs();
-  };
+  }, [fetchJobs]);
 
   return {
     jobs,

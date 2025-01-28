@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../supabase';
 import { useToast } from './useToast';
 import { useAuth } from '../../contexts/AuthContext';
@@ -10,7 +10,7 @@ export function useMessages(conversationId?: string) {
   const { user } = useAuth();
   const { addToast } = useToast();
 
-  const fetchMessages = async () => {
+  const fetchMessages = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -41,7 +41,12 @@ export function useMessages(conversationId?: string) {
 
       const { data, error } = await query;
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching messages:', error);
+        setError(error.message);
+        addToast('Failed to load messages', 'error');
+        throw error;
+      }
 
       setMessages(data || []);
     } catch (err: any) {
@@ -51,7 +56,7 @@ export function useMessages(conversationId?: string) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id, conversationId, addToast]);
 
   useEffect(() => {
     fetchMessages();
@@ -86,7 +91,7 @@ export function useMessages(conversationId?: string) {
     return () => {
       subscription.unsubscribe();
     };
-  }, [user?.id, conversationId]);
+  }, [fetchMessages, user?.id, conversationId]);
 
   const sendMessage = async (content: string, receiverId: string) => {
     try {
@@ -109,9 +114,9 @@ export function useMessages(conversationId?: string) {
     }
   };
 
-  const refresh = () => {
+  const refresh = useCallback(() => {
     fetchMessages();
-  };
+  }, [fetchMessages]);
 
   return {
     messages,
