@@ -1,29 +1,21 @@
-// Import necessary React hooks and Supabase client
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
 import { useToast } from './useToast';
 import { useAuth } from '../../contexts/AuthContext';
 
-// Define a custom hook for fetching and managing jobs
 export function useJobs(options = { limit: 10, page: 0 }) {
-  // State variables for jobs, loading, error, and total count
   const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [totalCount, setTotalCount] = useState(0);
-  // Get user from AuthContext
   const { user } = useAuth();
-  // Get addToast function from useToast hook
   const { addToast } = useToast();
 
-  // Function to fetch jobs from Supabase
   const fetchJobs = async () => {
     try {
-      // Set loading state to true and clear any previous errors
       setLoading(true);
       setError(null);
 
-      // Build the Supabase query
       let query = supabase
         .from('jobs')
         .select('*, users!jobs_client_id_fkey(full_name)', { count: 'exact' });
@@ -39,29 +31,22 @@ export function useJobs(options = { limit: 10, page: 0 }) {
         .range(from, from + options.limit - 1)
         .order('created_at', { ascending: false });
 
-      // Execute the query
       const { data, error, count } = await query;
 
-      // Throw error if query fails
       if (error) throw error;
 
-      // Update state with fetched data
       setJobs(data || []);
       if (count !== null) setTotalCount(count);
     } catch (err: any) {
-      // Log the error, set error state, and display a toast
       console.error('Error fetching jobs:', err);
       setError(err.message);
       addToast('Failed to load jobs', 'error');
     } finally {
-      // Set loading state to false
       setLoading(false);
     }
   };
 
-  // useEffect hook to fetch jobs and set up real-time subscription
   useEffect(() => {
-    // Fetch jobs on mount
     fetchJobs();
 
     // Set up real-time subscription
@@ -91,18 +76,15 @@ export function useJobs(options = { limit: 10, page: 0 }) {
       )
       .subscribe();
 
-    // Unsubscribe from the channel on unmount
     return () => {
       subscription.unsubscribe();
     };
   }, [user?.id, options.page, options.limit]);
 
-  // Function to refresh jobs
   const refresh = () => {
     fetchJobs();
   };
 
-  // Return the state variables and refresh function
   return {
     jobs,
     loading,

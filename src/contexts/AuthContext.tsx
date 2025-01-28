@@ -39,14 +39,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchUserDetails = async (userId: string) => {
     try {
-      const { data: details, error: detailsError } = await supabase
+      console.log('Fetching user details for:', userId);
+      const { data, error } = await supabase
         .from('users')
         .select('role, full_name, avatar_url, availability_status')
         .eq('id', userId)
         .maybeSingle();
 
-      if (detailsError) throw detailsError;
-      return details;
+      if (error) {
+        console.error('Error fetching user details:', error);
+        throw error;
+      }
+      console.log('User details fetched successfully:', data);
+      return data;
     } catch (error) {
       console.error('Error fetching user details:', error);
       return null;
@@ -55,6 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const handleAuthStateChange = async (event: string, session: any) => {
     try {
+      console.log('Auth state changed:', event, session);
       if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
         setUser(null);
         localStorage.removeItem(CACHE_KEY);
@@ -82,9 +88,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     async function initializeAuth() {
       try {
+        console.log('Initializing auth state');
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
+          console.error('Error getting session:', sessionError);
           if (sessionError instanceof AuthError && sessionError.status === 400) {
             localStorage.removeItem(CACHE_KEY);
             setUser(null);
@@ -111,7 +119,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(null);
         localStorage.removeItem(CACHE_KEY);
       } finally {
-        if (mounted) setLoading(false);
+        if (mounted) {
+          setLoading(false);
+          console.log('Auth initialization complete, loading set to false');
+        }
       }
     }
 
@@ -136,6 +147,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     },
     signUp: async (email: string, password: string, role: 'client' | 'vendor', fullName: string) => {
       try {
+        console.log('Signing up user:', email, role);
         const { data: authData, error: authError } = await supabase.auth.signUp({
           email,
           password,
@@ -144,7 +156,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         });
 
-        if (authError) throw authError;
+        if (authError) {
+          console.error('Signup error:', authError);
+          throw authError;
+        }
         if (!authData.user) throw new Error(AUTH_ERROR_MESSAGES.GENERIC_ERROR);
 
         const { error: profileError } = await supabase
@@ -157,7 +172,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             availability_status: 'online'
           }]);
 
-        if (profileError) throw profileError;
+        if (profileError) {
+          console.error('Error inserting user profile:', profileError);
+          throw profileError;
+        }
 
         const userData = { ...authData.user, role, full_name: fullName, availability_status: 'online' };
         setUser(userData);
@@ -171,16 +189,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     },
     signIn: async (email: string, password: string) => {
       try {
+        console.log('Signing in user:', email);
         const { data, error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password
         });
 
-        if (signInError) throw signInError;
+        if (signInError) {
+          console.error('Signin error:', signInError);
+          throw signInError;
+        }
         if (!data.user) throw new Error(AUTH_ERROR_MESSAGES.INVALID_CREDENTIALS);
 
         const details = await fetchUserDetails(data.user.id);
-        if (!details) throw new Error('Failed to fetch user details');
+         if (!details) throw new Error('Failed to fetch user details');
 
         const userData = { ...data.user, ...details };
         setUser(userData);
@@ -194,6 +216,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     },
     signOut: async () => {
       try {
+        console.log('Signing out user');
         await supabase.auth.signOut();
         setUser(null);
         localStorage.clear();

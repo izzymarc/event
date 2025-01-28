@@ -1,4 +1,3 @@
-{/* Import necessary React hooks and components */}
 import { Suspense, lazy, memo } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
@@ -12,7 +11,7 @@ import { useToast } from './lib/hooks/useToast';
 import RoleProtectedRoute from './components/RoleProtectedRoute';
 import { ROUTES } from './lib/constants';
 
-// Lazy load components to improve initial load time
+// Lazy load components
 const LandingPage = lazy(() => import('./components/landing/LandingPage'));
 const SignInForm = lazy(() => import('./components/auth/SignInForm'));
 const SignUpForm = lazy(() => import('./components/auth/SignUpForm'));
@@ -27,29 +26,23 @@ const PaymentCenter = lazy(() => import('./components/payments/PaymentCenter'));
 const UserProfile = lazy(() => import('./components/profile/UserProfile'));
 const Settings = lazy(() => import('./components/settings/Settings'));
 
-// Loading spinner component for lazy loaded components
 const LoadingSpinner = () => (
   <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
   </div>
 );
 
-// Private route component to protect routes that require authentication
 const PrivateRoute = memo(({ children }: { children: React.ReactNode }) => {
-  // Get user and loading state from AuthContext
   const { user, loading } = useAuth();
 
-  // Show loading spinner if auth is still loading
   if (loading) {
     return <LoadingSpinner />;
   }
 
-  // Redirect to sign-in page if user is not authenticated
   if (!user) {
     return <Navigate to={ROUTES.SIGN_IN} replace />;
   }
 
-  // Render the children if user is authenticated
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -65,37 +58,29 @@ const PrivateRoute = memo(({ children }: { children: React.ReactNode }) => {
 
 PrivateRoute.displayName = 'PrivateRoute';
 
-// Public route component to redirect authenticated users from public routes
 const PublicRoute = memo(({ children }: { children: React.ReactNode }) => {
-  // Get user and loading state from AuthContext
   const { user, loading } = useAuth();
 
-  // Show loading spinner if auth is still loading
   if (loading) {
     return <LoadingSpinner />;
   }
 
-  // Redirect to dashboard if user is authenticated
   if (user) {
     return <Navigate to={ROUTES.DASHBOARD} replace />;
   }
 
-  // Render the children if user is not authenticated
   return <ErrorBoundary>{children}</ErrorBoundary>;
 });
 
 PublicRoute.displayName = 'PublicRoute';
 
-// Main app content component
 const AppContent = () => {
-  // Get toast functions from useToast hook
   const { toasts, removeToast } = useToast();
 
   return (
     <Router>
       <Suspense fallback={<LoadingSpinner />}>
         <Routes>
-          {/* Public Routes */}
           <Route path={ROUTES.HOME} element={<LandingPage />} />
           <Route
             path={ROUTES.SIGN_IN}
@@ -129,8 +114,6 @@ const AppContent = () => {
               </PublicRoute>
             }
           />
-
-          {/* Private Routes */}
           <Route
             path={ROUTES.DASHBOARD}
             element={
@@ -151,7 +134,6 @@ const AppContent = () => {
             path={ROUTES.CREATE_JOB}
             element={
               <PrivateRoute>
-                {/* Role protected route for creating jobs */}
                 <RoleProtectedRoute requiredPermission="create:jobs">
                   <CreateJob />
                 </RoleProtectedRoute>
@@ -198,17 +180,14 @@ const AppContent = () => {
               </PrivateRoute>
             }
           />
-          {/* Redirect to home page for any unknown routes */}
           <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
         </Routes>
       </Suspense>
-      {/* Toast container to display notifications */}
       <ToastContainer toasts={toasts} onClose={removeToast} />
     </Router>
   );
 };
 
-// Main App component that wraps the entire application
 export default function App() {
   return (
     <ErrorBoundary>

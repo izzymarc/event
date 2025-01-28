@@ -1,24 +1,17 @@
-
 import { useState } from 'react';
 import { supabase } from '../supabase';
 import { useToast } from './useToast';
 import { proposalSchema } from '../validation/schemas';
 
-// Custom hook to manage proposal actions
 export function useProposalActions() {
-  // State variable for loading state
   const [loading, setLoading] = useState(false);
-  // Get addToast function from useToast hook
   const { addToast } = useToast();
 
-  // Function to create a new proposal
   const createProposal = async (proposalData: any) => {
     setLoading(true);
     try {
-      // Validate proposal data using Zod schema
       const validatedData = proposalSchema.parse(proposalData);
       
-      // Insert the validated data into the 'proposals' table
       const { error } = await supabase
         .from('proposals')
         .insert(validatedData);
@@ -36,14 +29,11 @@ export function useProposalActions() {
     }
   };
 
-  // Function to update an existing proposal
   const updateProposal = async (proposalId: string, proposalData: any) => {
     setLoading(true);
     try {
-      // Validate proposal data using Zod schema
       const validatedData = proposalSchema.parse(proposalData);
       
-      // Update the proposal in the 'proposals' table
       const { error } = await supabase
         .from('proposals')
         .update(validatedData)
@@ -55,4 +45,38 @@ export function useProposalActions() {
       return true;
     } catch (error: any) {
       console.error('Error updating proposal:', error);
-      addToast(error.message || '
+      addToast(error.message || 'Failed to update proposal', 'error');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const withdrawProposal = async (proposalId: string) => {
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('proposals')
+        .delete()
+        .eq('id', proposalId);
+
+      if (error) throw error;
+      
+      addToast('Proposal withdrawn successfully', 'success');
+      return true;
+    } catch (error: any) {
+      console.error('Error withdrawing proposal:', error);
+      addToast(error.message || 'Failed to withdraw proposal', 'error');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return {
+    loading,
+    createProposal,
+    updateProposal,
+    withdrawProposal
+  };
+}

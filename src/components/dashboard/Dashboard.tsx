@@ -33,20 +33,28 @@ export default function Dashboard() {
   });
 
   useEffect(() => {
+    console.log('Dashboard useEffect triggered, user:', user);
     fetchDashboardData();
   }, [user]);
 
   async function fetchDashboardData() {
     try {
+      console.log('Fetching dashboard data, user role:', user?.role);
+      setLoading(true);
+
       if (user?.role === 'client') {
-        // Fetch client-specific data
-        const { data: postedJobs } = await supabase
+        const { data: postedJobs, error: postedJobsError } = await supabase
           .from('jobs')
-          .select('*')
+          .select('*, users!jobs_client_id_fkey(full_name)')
           .eq('client_id', user.id)
           .order('created_at', { ascending: false });
 
-        const { data: proposals } = await supabase
+        if (postedJobsError) {
+          console.error('Error fetching posted jobs (client):', postedJobsError);
+          throw postedJobsError;
+        }
+
+        const { data: proposals, error: proposalsError } = await supabase
           .from('proposals')
           .select(`
             *,
@@ -54,6 +62,11 @@ export default function Dashboard() {
             users (full_name)
           `)
           .eq('jobs.client_id', user.id);
+
+        if (proposalsError) {
+          console.error('Error fetching proposals (client):', proposalsError);
+          throw proposalsError;
+        }
 
         setDashboardData({
           stats: [
@@ -96,7 +109,8 @@ export default function Dashboard() {
             title: job.title,
             time: new Date(job.created_at).toLocaleDateString(),
             status: job.status,
-            budget: `$${job.budget}`
+            budget: `$${job.budget}`,
+            client: job.users?.full_name
           })) || [],
           upcomingDeadlines: postedJobs?.filter(job => job.deadline)
             .sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime())
@@ -110,20 +124,31 @@ export default function Dashboard() {
             })) || []
         });
       } else {
-        // Fetch vendor-specific data
-        const { data: submittedProposals } = await supabase
+        console.log('Fetching vendor dashboard data');
+        const { data: submittedProposals, error: submittedProposalsError } = await supabase
           .from('proposals')
           .select(`
             *,
-            jobs (title, budget, deadline)
+            jobs (title, budget, deadline),
+            users (full_name)
           `)
           .eq('vendor_id', user.id);
 
-        const { data: activeJobs } = await supabase
+        if (submittedProposalsError) {
+          console.error('Error fetching submitted proposals (vendor):', submittedProposalsError);
+          throw submittedProposalsError;
+        }
+
+        const { data: activeJobs, error: activeJobsError } = await supabase
           .from('jobs')
           .select('*')
           .eq('status', 'active')
           .order('created_at', { ascending: false });
+
+        if (activeJobsError) {
+          console.error('Error fetching active jobs (vendor):', activeJobsError);
+          throw activeJobsError;
+        }
 
         setDashboardData({
           stats: [
@@ -166,7 +191,8 @@ export default function Dashboard() {
             title: proposal.jobs?.title,
             time: new Date(proposal.created_at).toLocaleDateString(),
             status: proposal.status,
-            amount: `$${proposal.price}`
+            amount: `$${proposal.price}`,
+            client: proposal.users?.full_name
           })) || [],
           upcomingDeadlines: submittedProposals?.filter(p => p.jobs?.deadline && p.status === 'accepted')
             .sort((a, b) => new Date(a.jobs.deadline).getTime() - new Date(b.jobs.deadline).getTime())
@@ -184,10 +210,10 @@ export default function Dashboard() {
       console.error('Error fetching dashboard data:', error);
     } finally {
       setLoading(false);
+      console.log('Dashboard data fetching complete, loading set to false');
     }
   }
 
-  // Get time of day for personalized greeting
   const getTimeBasedGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return 'Good morning';
@@ -195,7 +221,6 @@ export default function Dashboard() {
     return 'Good evening';
   };
 
-  // Get role-specific welcome message
   const getWelcomeMessage = () => {
     if (!user?.role) return 'Welcome to your dashboard';
     
@@ -216,7 +241,6 @@ export default function Dashboard() {
     return roleMessages[Math.floor(Math.random() * roleMessages.length)];
   };
 
-  // Get the first name from the full name
   const firstName = user?.full_name?.split(' ')[0] || '';
 
   if (loading) {
@@ -229,7 +253,6 @@ export default function Dashboard() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      {/* Enhanced Welcome Section */}
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -257,7 +280,6 @@ export default function Dashboard() {
         </div>
       </motion.div>
 
-      {/* Quick Actions */}
       <div className="mb-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {user?.role === 'client' ? (
@@ -312,7 +334,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Stats Grid */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
         {dashboardData.stats.map((stat) => {
           const Icon = stat.icon;
@@ -361,7 +382,6 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Recent Activity */}
         <div className="bg-white dark:bg-gray-800 shadow-sm rounded-lg">
           <div className="p-6 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between">
@@ -433,7 +453,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Upcoming Deadlines */}
         <div className="bg-white dark:bg-gray-800 shadow-sm rounded-lg">
           <div className="p-6 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between">

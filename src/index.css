@@ -1,26 +1,19 @@
-/* Import Tailwind CSS base styles */
 @tailwind base;
-/* Import Tailwind CSS component styles */
 @tailwind components;
-/* Import Tailwind CSS utility styles */
 @tailwind utilities;
 
-/* Define custom base styles */
 @layer base {
-  /* Define root variables for light theme */
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
   }
 
-  /* Define root variables for dark theme */
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 0 0% 100%;
   }
 }
 
-/* Apply base styles to the body */
 body {
   @apply bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-50;
 }

@@ -1,29 +1,39 @@
-{/* Import necessary React components and styles */}
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import './index.css';
+import { supabase } from './lib/supabase';
 
-// Get the root element where the React app will be rendered
 const rootElement = document.getElementById('root');
-// Throw an error if the root element is not found
 if (!rootElement) throw new Error('Failed to find the root element');
 
-// Create a root for the React app
 const root = createRoot(rootElement);
 
-// Wrap the app rendering in a try-catch block to handle any initialization errors
+// Function to test the database connection
+async function testDatabaseConnection() {
+  try {
+    console.log('Testing database connection...');
+    const { data, error } = await supabase.from('users').select('id').limit(1);
+    if (error) {
+      console.error('Database connection test failed:', error);
+    } else {
+      console.log('Database connection test successful. Retrieved user:', data);
+    }
+  } catch (error) {
+    console.error('Error during database connection test:', error);
+  }
+}
+
+// Wrap in try-catch to handle any initialization errors
 try {
-  // Render the app in strict mode
+  testDatabaseConnection(); // Test the database connection
   root.render(
     <StrictMode>
       <App />
     </StrictMode>
   );
 } catch (error) {
-  // Log the error if rendering fails
   console.error('Failed to render app:', error);
-  // Render a fallback UI if rendering fails
   root.render(
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="text-center">
