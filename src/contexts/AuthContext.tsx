@@ -10,6 +10,7 @@ type UserWithRole = User & {
   full_name?: string;
   avatar_url?: string | null;
   availability_status?: string;
+  permissions?: string[];
 };
 
 interface AuthContextType {
@@ -50,7 +51,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       const { data, error } = await supabase
         .from('users')
-        .select('role, full_name, avatar_url, availability_status')
+        .select('role, full_name, avatar_url, availability_status, get_user_permissions() as permissions')
         .eq('id', userId)
         .maybeSingle();
 
@@ -172,6 +173,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (authError) {
           console.error('Signup error:', authError);
+          addToast(authError.message || AUTH_ERROR_MESSAGES.GENERIC_ERROR, 'error');
           throw authError;
         }
         if (!authData.user) throw new Error(AUTH_ERROR_MESSAGES.GENERIC_ERROR);
@@ -188,6 +190,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (profileError) {
           console.error('Error inserting user profile:', profileError);
+          addToast(profileError.message || AUTH_ERROR_MESSAGES.GENERIC_ERROR, 'error');
           throw profileError;
         }
 
@@ -204,6 +207,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signIn: async (email: string, password: string) => {
       try {
         console.log('Signing in user:', email);
+        setLoading(true); // Set loading to true before sign-in
         const { data, error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password
@@ -211,14 +215,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (signInError) {
           console.error('Signin error:', signInError);
+          addToast(signInError.message || AUTH_ERROR_MESSAGES.INVALID_CREDENTIALS, 'error');
           throw signInError;
         }
         if (!data.user) throw new Error(AUTH_ERROR_MESSAGES.INVALID_CREDENTIALS);
 
         const details = await fetchUserDetails(data.user.id);
-         if (!details) throw new Error('Failed to fetch user details');
+        if (!details) throw new Error('Failed to fetch user details');
 
-        const userData = { ...data.user, ...details };
+        const userData = { ...data.user, ...details, permissions: details.permissions };
         setUser(userData);
         localStorage.setItem(CACHE_KEY, JSON.stringify(userData));
         addToast('Welcome back!', 'success');
@@ -226,6 +231,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error('Signin error:', error);
         addToast(error.message || AUTH_ERROR_MESSAGES.INVALID_CREDENTIALS, 'error');
         throw error;
+      } finally {
+        setLoading(false); // Set loading to false after sign-in (success or failure)
       }
     },
     signOut: async () => {

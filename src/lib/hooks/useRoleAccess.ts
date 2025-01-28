@@ -1,23 +1,18 @@
 import { useAuth } from '../../contexts/AuthContext';
-
-type Permission = 'create:jobs' | 'manage:jobs' | 'view:proposals' | 'create:proposals' | 'view:jobs' | 'manage:proposals';
+import { useCallback } from 'react';
 
 export function useRoleAccess() {
   const { user } = useAuth();
 
-  const hasPermission = (permission: Permission): boolean => {
+  const hasPermission = useCallback((permission: string): boolean => {
     if (!user?.role) return false;
 
-    const rolePermissions = {
-      client: ['create:jobs', 'manage:jobs', 'view:proposals'],
-      vendor: ['create:proposals', 'view:jobs', 'manage:proposals']
-    };
+    // Check if the user has the required permission
+    return user.permissions?.includes(permission) || false;
+  }, [user]);
 
-    return rolePermissions[user.role].includes(permission);
-  };
-
-  const isClient = (): boolean => user?.role === 'client';
-  const isVendor = (): boolean => user?.role === 'vendor';
+  const isClient = useCallback(() => user?.role === 'client', [user]);
+  const isVendor = useCallback(() => user?.role === 'vendor', [user]);
 
   return {
     hasPermission,

@@ -23,7 +23,7 @@ export default function SignInForm() {
 
     try {
       await signIn(email, password);
-      navigate(ROUTES.DASHBOARD);
+      // Navigation is now handled in AuthContext
     } catch (err: any) {
       console.error('Signin error:', err);
       setError(err.message || 'Failed to sign in. Please check your credentials.');

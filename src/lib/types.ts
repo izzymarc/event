@@ -1,4 +1,4 @@
-export type Permission = 'create:jobs' | 'manage:jobs' | 'view:proposals' | 'create:proposals' | 'view:jobs' | 'manage:proposals';
+export type Permission = string;
 
 export type UserRole = 'client' | 'vendor';
 

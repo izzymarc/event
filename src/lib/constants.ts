@@ -56,13 +56,3 @@ export const USER_ROLES = {
   CLIENT: 'client',
   VENDOR: 'vendor'
 } as const;
-
-// Permissions
-export const PERMISSIONS = {
-  CREATE_JOBS: 'create:jobs',
-  MANAGE_JOBS: 'manage:jobs',
-  VIEW_PROPOSALS: 'view:proposals',
-  CREATE_PROPOSALS: 'create:proposals',
-  VIEW_JOBS: 'view:jobs',
-  MANAGE_PROPOSALS: 'manage:proposals'
-} as const;
