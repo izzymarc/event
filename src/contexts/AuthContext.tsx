@@ -218,10 +218,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           addToast(signInError.message || AUTH_ERROR_MESSAGES.INVALID_CREDENTIALS, 'error');
           throw signInError;
         }
-        if (!data.user) throw new Error(AUTH_ERROR_MESSAGES.INVALID_CREDENTIALS);
+        if (!data.user) {
+          console.error('Signin error: No user returned after sign in');
+          throw new Error(AUTH_ERROR_MESSAGES.INVALID_CREDENTIALS);
+        }
 
         const details = await fetchUserDetails(data.user.id);
-        if (!details) throw new Error('Failed to fetch user details');
+        if (!details) {
+          console.error('Signin error: Failed to fetch user details');
+          throw new Error('Failed to fetch user details');
+        }
 
         const userData = { ...data.user, ...details, permissions: details.permissions };
         setUser(userData);
