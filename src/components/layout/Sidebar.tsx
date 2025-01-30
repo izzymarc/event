@@ -8,21 +8,31 @@ import {
   MessageSquare,
   CreditCard,
   Settings,
-  LogOut,
-  UserPlus
+  LogOut
 } from 'lucide-react';
-import RoleBadge from '../RoleBadge';
 
 export default function Sidebar() {
   const location = useLocation();
   const { user, signOut } = useAuth();
 
-  const baseNavigation = [
+  const navigation = [
     {
       name: 'Dashboard',
       href: '/dashboard',
       icon: LayoutDashboard,
       current: location.pathname === '/dashboard'
+    },
+    {
+      name: 'Jobs',
+      href: '/jobs',
+      icon: Briefcase,
+      current: location.pathname === '/jobs'
+    },
+    {
+      name: 'Proposals',
+      href: '/proposals',
+      icon: FileText,
+      current: location.pathname === '/proposals'
     },
     {
       name: 'Messages',
@@ -44,58 +54,9 @@ export default function Sidebar() {
     }
   ];
 
-  const roleSpecificNavigation = {
-    client: [
-      {
-        name: 'Post Jobs',
-        href: '/jobs/new',
-        icon: Briefcase,
-        current: location.pathname === '/jobs/new'
-      },
-      {
-        name: 'My Jobs',
-        href: '/jobs',
-        icon: FileText,
-        current: location.pathname === '/jobs'
-      },
-      {
-        name: 'Proposals',
-        href: '/proposals',
-        icon: UserPlus,
-        current: location.pathname === '/proposals'
-      }
-    ],
-    vendor: [
-      {
-        name: 'Find Jobs',
-        href: '/jobs',
-        icon: Briefcase,
-        current: location.pathname === '/jobs'
-      },
-      {
-        name: 'My Proposals',
-        href: '/proposals',
-        icon: FileText,
-        current: location.pathname === '/proposals'
-      }
-    ]
-  };
-
-  const navigation = useMemo(() => {
-    return [
-      ...baseNavigation,
-      ...(user?.role ? roleSpecificNavigation[user.role] : [])
-    ];
-  }, [user?.role, baseNavigation, roleSpecificNavigation]);
-
   return (
     <div className="w-64 bg-white shadow-sm min-h-screen">
       <div className="h-full px-3 py-4 overflow-y-auto">
-        <div className="flex items-center space-x-2 px-3 mb-6">
-          <RoleBadge showIcon={false} />
-          <span className="text-sm text-gray-500">Account</span>
-        </div>
-        
         <div className="space-y-2">
           {navigation.map((item) => {
             const Icon = item.icon;

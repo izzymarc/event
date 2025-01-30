@@ -2,7 +2,6 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Bell, MessageSquare, User } from 'lucide-react';
-import RoleBadge from '../RoleBadge';
 
 export default function Navbar() {
   const { user } = useAuth();
@@ -30,25 +29,22 @@ export default function Navbar() {
               <MessageSquare className="h-6 w-6" />
             </Link>
 
-            <div className="flex items-center space-x-3">
-              <RoleBadge />
-              <Link
-                to="/profile"
-                className="flex items-center space-x-3 text-gray-700 hover:text-gray-900"
-              >
-                <div className="relative">
-                  {user?.full_name ? (
-                    <div className="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center text-white font-medium">
-                      {user.full_name.charAt(0)}
-                    </div>
-                  ) : (
-                    <User className="h-8 w-8 text-gray-400" />
-                  )}
-                  <span className="absolute bottom-0 right-0 block h-2 w-2 rounded-full bg-green-400 ring-2 ring-white" />
-                </div>
-                <span className="font-medium">{user?.full_name || 'Profile'}</span>
-              </Link>
-            </div>
+            <Link
+              to="/profile"
+              className="flex items-center space-x-3 text-gray-700 hover:text-gray-900"
+            >
+              <div className="relative">
+                {user?.full_name ? (
+                  <div className="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center text-white font-medium">
+                    {user.full_name.charAt(0)}
+                  </div>
+                ) : (
+                  <User className="h-8 w-8 text-gray-400" />
+                )}
+                <span className="absolute bottom-0 right-0 block h-2 w-2 rounded-full bg-green-400 ring-2 ring-white" />
+              </div>
+              <span className="font-medium">{user?.full_name || 'Profile'}</span>
+            </Link>
           </div>
         </div>
       </div>

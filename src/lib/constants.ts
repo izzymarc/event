@@ -35,7 +35,6 @@ export const ROUTES = {
   RESET_PASSWORD: '/reset-password',
   DASHBOARD: '/dashboard',
   JOBS: '/jobs',
-  CREATE_JOB: '/jobs/new',
   PROPOSALS: '/proposals',
   MESSAGES: '/messages',
   PAYMENTS: '/payments',
@@ -50,9 +49,3 @@ export const JOB_CATEGORIES = [
   { id: 'marketing', name: 'Marketing' },
   { id: 'writing', name: 'Writing' },
 ] as const;
-
-// User Roles
-export const USER_ROLES = {
-  CLIENT: 'client',
-  VENDOR: 'vendor'
-} as const;

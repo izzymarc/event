@@ -8,8 +8,8 @@ import Sidebar from './components/layout/Sidebar';
 import ErrorBoundary from './components/ErrorBoundary';
 import { ToastContainer } from './components/ui/Toast';
 import { useToast } from './lib/hooks/useToast';
-import RoleProtectedRoute from './components/RoleProtectedRoute';
 import { ROUTES } from './lib/constants';
+import { LoadingPage } from './components/ui/LoadingSpinner';
 
 // Lazy load components
 const LandingPage = lazy(() => import('./components/landing/LandingPage'));
@@ -19,24 +19,17 @@ const ForgotPasswordForm = lazy(() => import('./components/auth/ForgotPasswordFo
 const ResetPasswordForm = lazy(() => import('./components/auth/ResetPasswordForm'));
 const Dashboard = lazy(() => import('./components/dashboard/Dashboard'));
 const JobMarketplace = lazy(() => import('./components/jobs/JobMarketplace'));
-const CreateJob = lazy(() => import('./components/jobs/CreateJob'));
 const ProposalList = lazy(() => import('./components/proposals/ProposalList'));
 const MessagingCenter = lazy(() => import('./components/messaging/MessagingCenter'));
 const PaymentCenter = lazy(() => import('./components/payments/PaymentCenter'));
 const UserProfile = lazy(() => import('./components/profile/UserProfile'));
 const Settings = lazy(() => import('./components/settings/Settings'));
 
-const LoadingSpinner = () => (
-  <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-  </div>
-);
-
 const PrivateRoute = memo(({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return <LoadingSpinner />;
+    return <LoadingPage />;
   }
 
   if (!user) {
@@ -44,7 +37,7 @@ const PrivateRoute = memo(({ children }: { children: React.ReactNode }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Navbar />
       <div className="flex">
         <Sidebar />
@@ -62,7 +55,7 @@ const PublicRoute = memo(({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return <LoadingSpinner />;
+    return <LoadingPage />;
   }
 
   if (user) {
@@ -74,126 +67,110 @@ const PublicRoute = memo(({ children }: { children: React.ReactNode }) => {
 
 PublicRoute.displayName = 'PublicRoute';
 
-const AppContent = () => {
+export default function App() {
   const { toasts, removeToast } = useToast();
 
-  return (
-    <Router>
-      <Suspense fallback={<LoadingSpinner />}>
-        <Routes>
-          <Route path={ROUTES.HOME} element={<LandingPage />} />
-          <Route
-            path={ROUTES.SIGN_IN}
-            element={
-              <PublicRoute>
-                <SignInForm />
-              </PublicRoute>
-            }
-          />
-          <Route
-            path={ROUTES.SIGN_UP}
-            element={
-              <PublicRoute>
-                <SignUpForm />
-              </PublicRoute>
-            }
-          />
-          <Route
-            path={ROUTES.FORGOT_PASSWORD}
-            element={
-              <PublicRoute>
-                <ForgotPasswordForm />
-              </PublicRoute>
-            }
-          />
-          <Route
-            path={ROUTES.RESET_PASSWORD}
-            element={
-              <PublicRoute>
-                <ResetPasswordForm />
-              </PublicRoute>
-            }
-          />
-          <Route
-            path={ROUTES.DASHBOARD}
-            element={
-              <PrivateRoute>
-                <Dashboard />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path={ROUTES.JOBS}
-            element={
-              <PrivateRoute>
-                <JobMarketplace />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path={ROUTES.CREATE_JOB}
-            element={
-              <PrivateRoute>
-                <RoleProtectedRoute requiredPermission="create:jobs">
-                  <CreateJob />
-                </RoleProtectedRoute>
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path={ROUTES.PROPOSALS}
-            element={
-              <PrivateRoute>
-                <ProposalList />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path={ROUTES.MESSAGES}
-            element={
-              <PrivateRoute>
-                <MessagingCenter />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path={ROUTES.PAYMENTS}
-            element={
-              <PrivateRoute>
-                <PaymentCenter />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path={ROUTES.PROFILE}
-            element={
-              <PrivateRoute>
-                <UserProfile />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path={ROUTES.SETTINGS}
-            element={
-              <PrivateRoute>
-                <Settings />
-              </PrivateRoute>
-            }
-          />
-          <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
-        </Routes>
-      </Suspense>
-      <ToastContainer toasts={toasts} onClose={removeToast} />
-    </Router>
-  );
-};
-
-export default function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider>
         <AuthProvider>
-          <AppContent />
+          <Router>
+            <Suspense fallback={<LoadingPage />}>
+              <Routes>
+                <Route path={ROUTES.HOME} element={<LandingPage />} />
+                <Route
+                  path={ROUTES.SIGN_IN}
+                  element={
+                    <PublicRoute>
+                      <SignInForm />
+                    </PublicRoute>
+                  }
+                />
+                <Route
+                  path={ROUTES.SIGN_UP}
+                  element={
+                    <PublicRoute>
+                      <SignUpForm />
+                    </PublicRoute>
+                  }
+                />
+                <Route
+                  path={ROUTES.FORGOT_PASSWORD}
+                  element={
+                    <PublicRoute>
+                      <ForgotPasswordForm />
+                    </PublicRoute>
+                  }
+                />
+                <Route
+                  path={ROUTES.RESET_PASSWORD}
+                  element={
+                    <PublicRoute>
+                      <ResetPasswordForm />
+                    </PublicRoute>
+                  }
+                />
+                <Route
+                  path={ROUTES.DASHBOARD}
+                  element={
+                    <PrivateRoute>
+                      <Dashboard />
+                    </PrivateRoute>
+                  }
+                />
+                <Route
+                  path={ROUTES.JOBS}
+                  element={
+                    <PrivateRoute>
+                      <JobMarketplace />
+                    </PrivateRoute>
+                  }
+                />
+                <Route
+                  path={ROUTES.PROPOSALS}
+                  element={
+                    <PrivateRoute>
+                      <ProposalList />
+                    </PrivateRoute>
+                  }
+                />
+                <Route
+                  path={ROUTES.MESSAGES}
+                  element={
+                    <PrivateRoute>
+                      <MessagingCenter />
+                    </PrivateRoute>
+                  }
+                />
+                <Route
+                  path={ROUTES.PAYMENTS}
+                  element={
+                    <PrivateRoute>
+                      <PaymentCenter />
+                    </PrivateRoute>
+                  }
+                />
+                <Route
+                  path={ROUTES.PROFILE}
+                  element={
+                    <PrivateRoute>
+                      <UserProfile />
+                    </PrivateRoute>
+                  }
+                />
+                <Route
+                  path={ROUTES.SETTINGS}
+                  element={
+                    <PrivateRoute>
+                      <Settings />
+                    </PrivateRoute>
+                  }
+                />
+                <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
+              </Routes>
+            </Suspense>
+            <ToastContainer toasts={toasts} onClose={removeToast} />
+          </Router>
         </AuthProvider>
       </ThemeProvider>
     </ErrorBoundary>

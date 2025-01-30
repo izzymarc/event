@@ -1,9 +1,37 @@
-import React, { useState } from 'react';
-import { Search, Filter, Briefcase } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, Filter, Briefcase, DollarSign, Clock, MapPin, Star, Award, ChevronDown, Users } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '../../lib/supabase';
+import { formatCurrency, formatDate } from '../../lib/utils';
+import { useAuth } from '../../contexts/AuthContext';
+import { Link } from 'react-router-dom';
+
+interface Job {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  budget: number;
+  deadline: string;
+  status: string;
+  experience_level: string;
+  proposals_count: number;
+  client: {
+    full_name: string;
+    rating: number;
+  };
+  created_at: string;
+}
 
 export default function JobMarketplace() {
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedExperience, setSelectedExperience] = useState('all');
+  const [selectedBudget, setSelectedBudget] = useState('all');
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showFilters, setShowFilters] = useState(false);
 
   const categories = [
     { id: 'all', name: 'All Categories' },
@@ -13,91 +41,267 @@ export default function JobMarketplace() {
     { id: 'writing', name: 'Writing' }
   ];
 
-  const jobs = [
-    {
-      id: 1,
-      title: 'Website Redesign Project',
-      category: 'design',
-      budget: '$2,000 - $3,000',
-      description: 'Looking for a skilled designer to redesign our company website...',
-      postedDate: '2 days ago',
-      proposals: 5
-    },
-    {
-      id: 2,
-      title: 'Mobile App Development',
-      category: 'development',
-      budget: '$5,000 - $8,000',
-      description: 'Need an experienced developer for building a React Native app...',
-      postedDate: '1 day ago',
-      proposals: 3
-    }
+  const experienceLevels = [
+    { id: 'all', name: 'All Levels' },
+    { id: 'entry', name: 'Entry Level' },
+    { id: 'intermediate', name: 'Intermediate' },
+    { id: 'expert', name: 'Expert' }
   ];
 
+  const budgetRanges = [
+    { id: 'all', name: 'All Budgets' },
+    { id: '0-1000', name: 'Under $1,000' },
+    { id: '1000-5000', name: '$1,000 - $5,000' },
+    { id: '5000-10000', name: '$5,000 - $10,000' },
+    { id: '10000+', name: '$10,000+' }
+  ];
+
+  useEffect(() => {
+    fetchJobs();
+  }, [selectedCategory, selectedExperience, selectedBudget]);
+
+  async function fetchJobs() {
+    try {
+      setLoading(true);
+      let query = supabase
+        .from('jobs')
+        .select(`
+          *,
+          client:users(full_name, rating)
+        `)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+
+      if (selectedCategory !== 'all') {
+        query = query.eq('category', selectedCategory);
+      }
+
+      if (selectedExperience !== 'all') {
+        query = query.eq('experience_level', selectedExperience);
+      }
+
+      if (selectedBudget !== 'all') {
+        const [min, max] = selectedBudget.split('-').map(Number);
+        if (max) {
+          query = query.gte('budget', min).lte('budget', max);
+        } else {
+          query = query.gte('budget', min);
+        }
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+      setJobs(data || []);
+    } catch (error) {
+      console.error('Error fetching jobs:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const filteredJobs = jobs.filter(job =>
+    job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    job.description.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Job Marketplace</h1>
-        <p className="mt-1 text-gray-500">
-          Find the perfect job opportunity that matches your skills.
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Job Marketplace</h1>
+        <p className="mt-1 text-gray-500 dark:text-gray-400">
+          Find the perfect job opportunity that matches your skills
         </p>
       </div>
 
-      <div className="mb-8 flex flex-col sm:flex-row gap-4">
-        <div className="flex-1">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-            <input
-              type="text"
-              placeholder="Search jobs..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-            />
+      {/* Search and Filters */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 mb-8">
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <input
+                type="text"
+                placeholder="Search jobs..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+              />
+            </div>
           </div>
-        </div>
-        <div className="sm:w-64">
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
-          </select>
+            <Filter className="h-5 w-5 mr-2" />
+            Filters
+            <ChevronDown className={`ml-2 h-4 w-4 transform transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+          </button>
         </div>
+
+        <AnimatePresence>
+          {showFilters && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4"
+            >
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Category
+                </label>
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="w-full border-gray-300 dark:border-gray-600 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white"
+                >
+                  {categories.map(category => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Experience Level
+                </label>
+                <select
+                  value={selectedExperience}
+                  onChange={(e) => setSelectedExperience(e.target.value)}
+                  className="w-full border-gray-300 dark:border-gray-600 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white"
+                >
+                  {experienceLevels.map(level => (
+                    <option key={level.id} value={level.id}>
+                      {level.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Budget Range
+                </label>
+                <select
+                  value={selectedBudget}
+                  onChange={(e) => setSelectedBudget(e.target.value)}
+                  className="w-full border-gray-300 dark:border-gray-600 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white"
+                >
+                  {budgetRanges.map(range => (
+                    <option key={range.id} value={range.id}>
+                      {range.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
-      <div className="bg-white shadow rounded-lg divide-y divide-gray-200">
-        {jobs.map((job) => (
-          <div key={job.id} className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <h2 className="text-lg font-medium text-gray-900">{job.title}</h2>
-                <div className="mt-1 flex items-center space-x-4">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+      {/* Job List */}
+      <div className="space-y-4">
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+            <p className="mt-4 text-gray-500 dark:text-gray-400">Loading jobs...</p>
+          </div>
+        ) : filteredJobs.length === 0 ? (
+          <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
+            <Briefcase className="mx-auto h-12 w-12 text-gray-400" />
+            <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">No jobs found</h3>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Try adjusting your search or filter criteria
+            </p>
+          </div>
+        ) : (
+          filteredJobs.map((job) => (
+            <motion.div
+              key={job.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-shadow"
+            >
+              <div className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-3">
+                      <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                        {job.title}
+                      </h2>
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        job.status === 'urgent'
+                          ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                          : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                      }`}>
+                        {job.status}
+                      </span>
+                    </div>
+                    <div className="mt-1 flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
+                      <span className="inline-flex items-center">
+                        <Users className="h-4 w-4 mr-1" />
+                        {job.client.full_name}
+                      </span>
+                      <span className="inline-flex items-center">
+                        <Star className="h-4 w-4 mr-1 text-yellow-400" />
+                        {job.client.rating}/5
+                      </span>
+                      <span className="inline-flex items-center">
+                        <MapPin className="h-4 w-4 mr-1" />
+                        Remote
+                      </span>
+                    </div>
+                  </div>
+                  <div className="ml-4 flex flex-col items-end">
+                    <div className="text-lg font-semibold text-gray-900 dark:text-white">
+                      {formatCurrency(job.budget)}
+                    </div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                      Fixed Price
+                    </div>
+                  </div>
+                </div>
+
+                <p className="mt-4 text-gray-600 dark:text-gray-300">
+                  {job.description}
+                </p>
+
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                     {job.category}
                   </span>
-                  <span className="text-sm text-gray-500">{job.budget}</span>
-                  <span className="text-sm text-gray-500">{job.postedDate}</span>
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                    {job.experience_level}
+                  </span>
                 </div>
-                <p className="mt-2 text-sm text-gray-500">{job.description}</p>
+
+                <div className="mt-6 flex items-center justify-between">
+                  <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
+                    <span className="inline-flex items-center">
+                      <Clock className="h-4 w-4 mr-1" />
+                      Posted {formatDate(job.created_at)}
+                    </span>
+                    <span className="inline-flex items-center">
+                      <Briefcase className="h-4 w-4 mr-1" />
+                      {job.proposals_count} proposals
+                    </span>
+                  </div>
+                  <Link
+                    to={`/jobs/${job.id}`}
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  >
+                    View Details
+                  </Link>
+                </div>
               </div>
-              <div className="ml-4">
-                <button className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                  Submit Proposal
-                </button>
-              </div>
-            </div>
-            <div className="mt-4 flex items-center text-sm text-gray-500">
-              <Briefcase className="h-4 w-4 mr-1" />
-              {job.proposals} proposals
-            </div>
-          </div>
-        ))}
+            </motion.div>
+          ))
+        )}
       </div>
     </div>
   );

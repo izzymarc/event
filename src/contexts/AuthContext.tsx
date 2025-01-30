@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, useMemo, useCallback } from 'react';
+import { createContext, useContext, useEffect, useState, useMemo } from 'react';
 import { User, AuthError } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import type { Database } from '../lib/database.types';
@@ -10,7 +10,6 @@ type UserWithRole = User & {
   full_name?: string;
   avatar_url?: string | null;
   availability_status?: string;
-  permissions?: string[];
 };
 
 interface AuthContextType {
@@ -25,88 +24,25 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const CACHE_KEY = 'auth_user';
-const USER_DETAILS_CACHE = new Map<string, any>();
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserWithRole | null>(() => {
-    try {
-      const cached = localStorage.getItem(CACHE_KEY);
-      return cached ? JSON.parse(cached) : null;
-    } catch {
-      return null;
-    }
+    const cached = localStorage.getItem(CACHE_KEY);
+    return cached ? JSON.parse(cached) : null;
   });
   const [loading, setLoading] = useState(true);
   const { addToast } = useToast();
-
-  const fetchUserDetails = useCallback(async (userId: string) => {
-    try {
-      console.log('Fetching user details for:', userId);
-      
-      // Check if user details are cached
-      if (USER_DETAILS_CACHE.has(userId)) {
-        console.log('User details found in cache:', userId);
-        return USER_DETAILS_CACHE.get(userId);
-      }
-
-      const { data, error } = await supabase
-        .from('users')
-        .select('role, full_name, avatar_url, availability_status, get_user_permissions() as permissions')
-        .eq('id', userId)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error fetching user details:', error);
-        throw error;
-      }
-      console.log('User details fetched successfully:', data);
-      USER_DETAILS_CACHE.set(userId, data); // Cache the user details
-      return data;
-    } catch (error) {
-      console.error('Error fetching user details:', error);
-      return null;
-    }
-  }, []);
-
-  const handleAuthStateChange = async (event: string, session: any) => {
-    try {
-      console.log('Auth state changed:', event, session);
-      if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
-        setUser(null);
-        localStorage.removeItem(CACHE_KEY);
-        USER_DETAILS_CACHE.clear(); // Clear cache on sign out
-        return;
-      }
-
-      if (session?.user) {
-        const details = await fetchUserDetails(session.user.id);
-        const userData = details ? { ...session.user, ...details } : session.user;
-        setUser(userData);
-        localStorage.setItem(CACHE_KEY, JSON.stringify(userData));
-      } else {
-        setUser(null);
-        localStorage.removeItem(CACHE_KEY);
-        USER_DETAILS_CACHE.clear(); // Clear cache if no user
-      }
-    } catch (error) {
-      console.error('Error handling auth state change:', error);
-      setUser(null);
-      localStorage.removeItem(CACHE_KEY);
-      USER_DETAILS_CACHE.clear(); // Clear cache on error
-    }
-  };
 
   useEffect(() => {
     let mounted = true;
 
     async function initializeAuth() {
       try {
-        console.log('Initializing auth state');
+        // Get initial session
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
         if (sessionError) {
-          console.error('Error getting session:', sessionError);
           if (sessionError instanceof AuthError && sessionError.status === 400) {
+            // Clear invalid session data
             localStorage.removeItem(CACHE_KEY);
             setUser(null);
           }
@@ -116,42 +52,93 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!mounted) return;
 
         if (session?.user) {
-          const details = await fetchUserDetails(session.user.id);
+          const { data: details, error: detailsError } = await supabase
+            .from('users')
+            .select('role, full_name, avatar_url, availability_status')
+            .eq('id', session.user.id)
+            .maybeSingle();
+
+          if (detailsError) throw detailsError;
+
           const userData = details ? { ...session.user, ...details } : session.user;
           setUser(userData);
           localStorage.setItem(CACHE_KEY, JSON.stringify(userData));
         } else {
           setUser(null);
           localStorage.removeItem(CACHE_KEY);
-          USER_DETAILS_CACHE.clear(); // Clear cache if no user
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
         if (error instanceof AuthError && error.status === 400) {
+          // Handle invalid refresh token
           addToast('Session expired. Please sign in again.', 'info');
         }
         setUser(null);
         localStorage.removeItem(CACHE_KEY);
-        USER_DETAILS_CACHE.clear(); // Clear cache on error
       } finally {
-        if (mounted) {
-          setLoading(false);
-          console.log('Auth initialization complete, loading set to false');
-        }
+        if (mounted) setLoading(false);
       }
     }
 
-    // Initialize auth state
-    initializeAuth();
-
     // Set up auth state change listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(handleAuthStateChange);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return;
+
+      if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+        setUser(null);
+        localStorage.removeItem(CACHE_KEY);
+        return;
+      }
+
+      if (event === 'TOKEN_REFRESHED') {
+        // Handle successful token refresh
+        if (session?.user) {
+          try {
+            const { data: details, error: detailsError } = await supabase
+              .from('users')
+              .select('role, full_name, avatar_url, availability_status')
+              .eq('id', session.user.id)
+              .maybeSingle();
+
+            if (detailsError) throw detailsError;
+
+            const userData = details ? { ...session.user, ...details } : session.user;
+            setUser(userData);
+            localStorage.setItem(CACHE_KEY, JSON.stringify(userData));
+          } catch (error) {
+            console.error('Error updating user details:', error);
+          }
+        }
+      }
+
+      if (session?.user) {
+        try {
+          const { data: details, error: detailsError } = await supabase
+            .from('users')
+            .select('role, full_name, avatar_url, availability_status')
+            .eq('id', session.user.id)
+            .maybeSingle();
+
+          if (detailsError) throw detailsError;
+
+          const userData = details ? { ...session.user, ...details } : session.user;
+          setUser(userData);
+          localStorage.setItem(CACHE_KEY, JSON.stringify(userData));
+        } catch (error) {
+          console.error('Error fetching user details:', error);
+          setUser(session.user);
+          localStorage.setItem(CACHE_KEY, JSON.stringify(session.user));
+        }
+      }
+    });
+
+    initializeAuth();
 
     return () => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [addToast, fetchUserDetails]);
+  }, [addToast]);
 
   const value = useMemo(() => ({
     user,
@@ -162,7 +149,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     },
     signUp: async (email: string, password: string, role: 'client' | 'vendor', fullName: string) => {
       try {
-        console.log('Signing up user:', email, role);
         const { data: authData, error: authError } = await supabase.auth.signUp({
           email,
           password,
@@ -171,11 +157,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         });
 
-        if (authError) {
-          console.error('Signup error:', authError);
-          addToast(authError.message || AUTH_ERROR_MESSAGES.GENERIC_ERROR, 'error');
-          throw authError;
-        }
+        if (authError) throw authError;
         if (!authData.user) throw new Error(AUTH_ERROR_MESSAGES.GENERIC_ERROR);
 
         const { error: profileError } = await supabase
@@ -188,11 +170,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             availability_status: 'online'
           }]);
 
-        if (profileError) {
-          console.error('Error inserting user profile:', profileError);
-          addToast(profileError.message || AUTH_ERROR_MESSAGES.GENERIC_ERROR, 'error');
-          throw profileError;
-        }
+        if (profileError) throw profileError;
 
         const userData = { ...authData.user, role, full_name: fullName, availability_status: 'online' };
         setUser(userData);
@@ -206,24 +184,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     },
     signIn: async (email: string, password: string) => {
       try {
-        console.log('Signing in user:', email);
-        setLoading(true); // Set loading to true before sign-in
         const { data, error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password
         });
 
-        if (signInError) {
-          console.error('Signin error:', signInError);
-          addToast(signInError.message || AUTH_ERROR_MESSAGES.INVALID_CREDENTIALS, 'error');
-          throw signInError;
-        }
+        if (signInError) throw signInError;
         if (!data.user) throw new Error(AUTH_ERROR_MESSAGES.INVALID_CREDENTIALS);
 
-        const details = await fetchUserDetails(data.user.id);
-        if (!details) throw new Error('Failed to fetch user details');
+        const { data: details, error: detailsError } = await supabase
+          .from('users')
+          .select('role, full_name, avatar_url, availability_status')
+          .eq('id', data.user.id)
+          .maybeSingle();
 
-        const userData = { ...data.user, ...details, permissions: details.permissions };
+        if (detailsError) throw detailsError;
+
+        const userData = details ? { ...data.user, ...details } : data.user;
         setUser(userData);
         localStorage.setItem(CACHE_KEY, JSON.stringify(userData));
         addToast('Welcome back!', 'success');
@@ -231,13 +208,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error('Signin error:', error);
         addToast(error.message || AUTH_ERROR_MESSAGES.INVALID_CREDENTIALS, 'error');
         throw error;
-      } finally {
-        setLoading(false); // Set loading to false after sign-in (success or failure)
       }
     },
     signOut: async () => {
       try {
-        console.log('Signing out user');
         await supabase.auth.signOut();
         setUser(null);
         localStorage.clear();
@@ -249,7 +223,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw error;
       }
     }
-  }), [user, loading, addToast, fetchUserDetails]);
+  }), [user, loading, addToast]);
 
   return (
     <AuthContext.Provider value={value}>
