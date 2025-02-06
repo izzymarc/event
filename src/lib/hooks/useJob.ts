@@ -23,7 +23,8 @@ export function useJob(jobId: string) {
           ),
           job_skills (
             skill
-          )
+          ),
+          milestones (*)  
         `)
         .eq('id', jobId)
         .single();
@@ -48,7 +49,7 @@ export function useJob(jobId: string) {
   useEffect(() => {
     fetchJob();
 
-    // Set up real-time subscription for job updates
+    // Set up real-time subscription for job updates (no changes needed here)
     const subscription = supabase
       .channel(`job_${jobId}`)
       .on(

@@ -18,13 +18,18 @@ export const signInSchema = z.object({
   password: z.string().min(1, 'Password is required')
 });
 
+// Updated profileSchema to include new fields with validation
 export const profileSchema = z.object({
   fullName: z.string().min(2, 'Name must be at least 2 characters'),
   title: z.string().optional(),
   bio: z.string().max(500, 'Bio must be less than 500 characters').optional(),
   location: z.string().optional(),
   hourlyRate: z.number().min(0, 'Hourly rate must be positive').optional(),
-  skills: z.array(z.string()).optional()
+  availability: z.enum(['available', 'busy', 'away']).optional(), // Availability enum
+  skills: z.array(z.string()).optional(),
+  portfolio_website_url: z.string().url().optional(), // Portfolio URL validation
+  linkedin_url: z.string().url().optional(), // LinkedIn URL validation
+  github_url: z.string().url().optional() // GitHub URL validation
 });
 
 export const jobSchema = z.object({

@@ -42,10 +42,30 @@ export const ROUTES = {
   SETTINGS: '/settings',
 } as const;
 
-// Job Categories
-export const JOB_CATEGORIES = [
-  { id: 'design', name: 'Design' },
-  { id: 'development', name: 'Development' },
-  { id: 'marketing', name: 'Marketing' },
-  { id: 'writing', name: 'Writing' },
+// Service Categories - Renamed and Updated
+export const SERVICE_CATEGORIES = [
+  { id: 'venue', name: 'Venue' },
+  { id: 'catering', name: 'Catering' },
+  { id: 'entertainment', name: 'Entertainment' },
+  { id: 'photography', name: 'Photography & Videography' },
+  { id: 'decor', name: 'Decor & Design' },
+  { id: 'planning', name: 'Event Planning' },
+  { id: 'staffing', name: 'Staffing & Support' },
+  { id: 'tech_av', name: 'Tech & AV' },
+  { id: 'marketing_pr', name: 'Marketing & PR' },
+  { id: 'other_service', name: 'Other Services' },
+] as const;
+
+// Event Types
+export const EVENT_TYPES = [
+    { id: 'wedding', name: 'Wedding' },
+    { id: 'corporate', name: 'Corporate Event' },
+    { id: 'conference', name: 'Conference' },
+    { id: 'party', name: 'Party' },
+    { id: 'festival', name: 'Festival' },
+    { id: 'concert', name: 'Concert' },
+    { id: 'seminar', name: 'Seminar' },
+    { id: 'trade_show', name: 'Trade Show' },
+    { id: 'virtual_event', name: 'Virtual Event' },
+    { id: 'other_event', name: 'Other' },
 ] as const;
