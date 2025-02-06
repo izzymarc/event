@@ -30,7 +30,7 @@ export default function Navbar() {
             </Link>
 
             <Link
-              to="/profile"
+              to="/profile" // Correct link to /profile
               className="flex items-center space-x-3 text-gray-700 hover:text-gray-900"
             >
               <div className="relative">

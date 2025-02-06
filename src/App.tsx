@@ -19,7 +19,7 @@ const ForgotPasswordForm = lazy(() => import('./components/auth/ForgotPasswordFo
 const ResetPasswordForm = lazy(() => import('./components/auth/ResetPasswordForm'));
 const Dashboard = lazy(() => import('./components/dashboard/Dashboard'));
 const JobMarketplace = lazy(() => import('./components/jobs/JobMarketplace'));
-const JobDetailsPage = lazy(() => import('./components/jobs/JobDetailsPage')); // Lazy load JobDetailsPage
+const JobDetailsPage = lazy(() => import('./components/jobs/JobDetailsPage'));
 const ProposalList = lazy(() => import('./components/proposals/ProposalList'));
 const MessagingCenter = lazy(() => import('./components/messaging/MessagingCenter'));
 const PaymentCenter = lazy(() => import('./components/payments/PaymentCenter'));
@@ -52,7 +52,7 @@ const PrivateRoute = memo(({ children }: { children: React.ReactNode }) => {
 
 PrivateRoute.displayName = 'PrivateRoute';
 
-const PublicRoute = memo(({ children }: { children: React.ReactNode }) => { // Re-add PublicRoute Component
+const PublicRoute = memo(({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -128,7 +128,7 @@ export default function App() {
                   }
                 />
                  <Route
-                  path="/jobs/:jobId" // Route for JobDetailsPage
+                  path="/jobs/:jobId"
                   element={
                     <PrivateRoute>
                       <JobDetailsPage />

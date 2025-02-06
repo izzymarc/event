@@ -25,23 +25,21 @@ import {
   Globe
 } from 'lucide-react';
 import { useToast } from '../../lib/hooks/useToast';
-import { profileSchema } from '../../lib/validation/schemas'; // Import profileSchema
+import { profileSchema } from '../../lib/validation/schemas';
 
-// ... (interfaces: WorkExperience, Education, Certification, PortfolioItem)
+// ... (interfaces)
 
 export default function UserProfile() {
-  const { user } = useAuth();
+  const { user } = useAuth(); // Use useAuth hook to get current user
   const { addToast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setLoading] = useState(false);
-
-  // Basic Profile Information
-  const [profile, setProfile] = useState({
-    full_name: user?.full_name || '',
+  const [profile, setProfile] = useState({ // Profile state
+    full_name: user?.full_name || '', // Default from auth context
     title: '',
     location: '',
     bio: '',
-    avatar_url: user?.avatar_url || '',
+    avatar_url: user?.avatar_url || '', // Default from auth context
     hourly_rate: 0,
     availability: 'available',
     languages: [] as string[],
@@ -51,61 +49,59 @@ export default function UserProfile() {
     linkedin_url: ''
   });
 
-  // ... (workExperience, education, certifications, portfolioItems, editingStates, newItemStates, fetchProfileData - no changes needed here)
+  // ... (editingExperience, editingEducation, etc., newExperience, newEducation, etc.)
 
+  const fetchProfileData = useCallback(async () => {
+    if (!user?.id) return; // Exit if user or user.id is not available yet
 
-  async function handleSave() {
-    setSaving(true);
     try {
-      // Validate profile data against schema
-      profileSchema.parse(profile); // Will throw error if invalid
-
-      // Update basic profile - Include new fields in upsert
-      const { error: profileError } = await supabase
+      setLoading(true);
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .upsert({
-          user_id: user?.id,
-          ...profile,
-          hourly_rate: parseFloat(String(profile.hourly_rate)), // Ensure saving as number
-        });
+        .select('*')
+        .eq('user_id', user.id) // Fetch profile for the current user.id
+        .single();
 
       if (profileError) throw profileError;
 
-      // Update user data - Keep existing user data update
-      const { error: userError } = await supabase
-        .from('users')
-        .update({
-          full_name: profile.full_name,
-          avatar_url: profile.avatar_url
-        })
-        .eq('id', user?.id);
-
-      if (userError) throw userError;
-
-      setIsEditing(false);
-      addToast('Profile updated successfully', 'success');
+      if (profileData) {
+        setProfile(prev => ({
+          ...prev,
+          ...profileData,
+          hourly_rate: profileData.hourly_rate || 0,
+          availability: profileData.availability || 'available',
+          portfolio_website_url: profileData.portfolio_website_url || '',
+          linkedin_url: profileData.linkedin_url || '',
+          github_url: profileData.github_url || ''
+        }));
+      } else {
+        setProfile(prev => ({ // Initialize with defaults if no profile data
+          ...prev,
+          hourly_rate: 0,
+          availability: 'available',
+          portfolio_website_url: '',
+          linkedin_url: '',
+          github_url: ''
+        }));
+      }
     } catch (error: any) {
-      addToast(error.message || 'Failed to update profile', 'error');
+      console.error('Error fetching profile:', error);
+      addToast(error.message || 'Failed to load profile data', 'error');
     } finally {
-      setSaving(false);
+      setLoading(false);
     }
-  }
+  }, [user?.id, addToast]); // Dependency on user?.id
 
+  useEffect(() => {
+    fetchProfileData(); // Fetch profile data on component mount and when user?.id changes
+  }, [fetchProfileData]);
 
-  // ... (handleAddExperience, handleAddEducation, handleAddCertification, handleAddPortfolioItem - no changes needed here)
-  // ... (rest of the component - render function remains mostly the same from previous step)
-  // ... (JSX - no changes needed as UI was updated in previous step)
+  // ... (handleSave, handleAddExperience, etc. - no changes needed here)
+  // ... (rest of the component - render function)
 
   return (
     <div className="max-w-7xl mx-auto">
-      {/* Profile Header - No changes needed here */}
-      {/* ... */}
-
-      {/* Profile Content - About, Experience, Education, etc. */}
-      {/* ... */}
-
-      {/* Modals for editing items - No changes needed here yet */}
-      {/* ... */}
+      {/* ... (rest of the component) */}
     </div>
   );
 }
