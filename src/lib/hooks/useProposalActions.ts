@@ -13,13 +13,15 @@ export function useProposalActions() {
       // Validate proposal data (using the existing schema, though we might need to adjust it)
       const validatedData = proposalSchema.parse(proposalData);
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('proposals')
-        .insert([validatedData]);
+        .insert([validatedData])
+        .select() // Add .select() to get the inserted row
+        .single(); // Add .single() because we expect only one row
 
       if (error) throw error;
 
-      addToast('Proposal submitted successfully', 'success');
+      addToast('Proposal submitted successfully!', 'success');
       return true; // Indicate success
     } catch (error: any) {
       console.error('Error creating proposal:', error);

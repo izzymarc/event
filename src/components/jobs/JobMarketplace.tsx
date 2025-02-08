@@ -1,3 +1,4 @@
+```tsx
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, Briefcase, DollarSign, Clock, MapPin, Star, ChevronDown, Users } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -23,7 +24,7 @@ interface Job {
     rating: number;
   };
   created_at: string;
-  milestones: any[];
+  milestones: any[]; // Add milestones type here
 }
 
 export default function JobMarketplace() {
@@ -277,6 +278,7 @@ export default function JobMarketplace() {
                       </span>
                       <span className="inline-flex items-center">
                         <Star className="h-4 w-4 mr-1 text-yellow-400" />
+                        {/* Assuming you have a rating field in your client data */}
                         {job.client.rating !== undefined && job.client.rating !== null ? `${job.client.rating}/5` : 'N/A'}
                       </span>
                       <span className="inline-flex items-center">
@@ -303,55 +305,4 @@ export default function JobMarketplace() {
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                     {job.category}
                   </span>
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                    {job.event_type}
-                  </span>
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
-                    {job.experience_level}
-                  </span>
-                </div>
-
-                {job.milestones && job.milestones.length > 0 && (
-                  <div className="mt-6">
-                    <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Milestones:</h4>
-                    <ul className="list-disc pl-5">
-                      {job.milestones.slice(0, 2).map((milestone: any) => (
-                        <li key={milestone.id} className="text-gray-600 dark:text-gray-300 truncate">
-                          {milestone.title} - {formatCurrency(milestone.payment_amount)}
-                        </li>
-                      ))}
-                      {job.milestones.length > 2 && (
-                        <li className="text-sm text-indigo-600 hover:text-indigo-500 cursor-pointer">
-                          + {job.milestones.length - 2} more milestones
-                        </li>
-                      )}
-                    </ul>
-                  </div>
-                )}
-
-                <div className="mt-6 flex items-center justify-between">
-                  <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
-                    <span className="inline-flex items-center">
-                      <Clock className="h-4 w-4 mr-1" />
-                      Posted {formatDate(job.created_at)}
-                    </span>
-                    <span className="inline-flex items-center">
-                      <Briefcase className="h-4 w-4 mr-1" />
-                      {job.proposals_count} proposals
-                    </span>
-                  </div>
-                  <Link
-                    to={`/jobs/${job.id}`}
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                  >
-                    View Details
-                  </Link>
-                </div>
-              </div>
-            </motion.div>
-          ))
-        )}
-      </div>
-    </div>
-  );
-}
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-
