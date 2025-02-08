@@ -1,14 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../supabase';
 import { useToast } from './useToast';
-import { useAuth } from '../../contexts/AuthContext'; // Import useAuth
+import { useAuth } from '../../contexts/AuthContext';
 
 export function useJob(jobId: string) {
   const [job, setJob] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { addToast } = useToast();
-  const { user } = useAuth(); // Get the current user
+  const { user } = useAuth();
 
   const fetchJob = useCallback(async () => {
     try {
@@ -48,10 +48,37 @@ export function useJob(jobId: string) {
     }
   }, [jobId, addToast]);
 
+  // New function to check if the current user has submitted a proposal
+  const hasUserSubmittedProposal = useCallback(async () => {
+    if (!user || user.role !== 'vendor' || !jobId) {
+      return false; // Not a vendor or no job ID
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('proposals')
+        .select('id')
+        .eq('job_id', jobId)
+        .eq('vendor_id', user.id)
+        .maybeSingle(); // Use maybeSingle
+
+      if (error) {
+        console.error("Error checking for existing proposal:", error);
+        addToast('Failed to check for existing proposal', 'error');
+        return false; // Assume no proposal on error
+      }
+
+      return !!data; // Return true if data exists (proposal found)
+    } catch (error) {
+      console.error("Error checking for existing proposal:", error);
+      addToast('Failed to check for existing proposal', 'error');
+      return false; // Assume no proposal on error
+    }
+  }, [user, jobId, addToast]);
+
   useEffect(() => {
     fetchJob();
 
-    // Set up real-time subscription for job updates
     const subscription = supabase
       .channel(`job_${jobId}`)
       .on(
@@ -86,6 +113,7 @@ export function useJob(jobId: string) {
     job,
     loading,
     error,
-    refresh
+    refresh,
+    hasUserSubmittedProposal // Expose the new function
   };
 }

@@ -1,18 +1,18 @@
-import React, { useState, useEffect } from 'react'; // Import useEffect
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useJob } from '../../lib/hooks/useJob';
 import { LoadingPage } from '../ui/LoadingSpinner';
 import { formatCurrency, formatDate } from '../../lib/utils';
-import SubmitProposal from '../proposals/SubmitProposal'; // Import SubmitProposal
-import { useAuth } from '../../contexts/AuthContext'; // Import useAuth
+import SubmitProposal from '../proposals/SubmitProposal';
+import { useAuth } from '../../contexts/AuthContext';
+import ProposalList from '../proposals/ProposalList'; // Import ProposalList
 
 export default function JobDetailsPage() {
   const { jobId } = useParams();
   const { job, loading, error, refresh } = useJob(jobId || '');
-  const { user } = useAuth(); // Get the current user
+  const { user } = useAuth();
   const [hasSubmittedProposal, setHasSubmittedProposal] = useState(false);
 
-  // Check if the current user has already submitted a proposal
   useEffect(() => {
     const checkIfSubmitted = async () => {
       if (user && user.role === 'vendor' && job) {
@@ -21,13 +21,12 @@ export default function JobDetailsPage() {
           .select('id')
           .eq('job_id', job.id)
           .eq('vendor_id', user.id)
-          .maybeSingle(); // Use maybeSingle to handle no proposals
+          .maybeSingle();
 
         if (error) {
           console.error("Error checking for existing proposal:", error);
-          // Handle error appropriately, e.g., show a toast message
         } else {
-          setHasSubmittedProposal(!!data); // Set to true if data exists (proposal found)
+          setHasSubmittedProposal(!!data);
         }
       }
     };
@@ -47,7 +46,6 @@ export default function JobDetailsPage() {
   return (
     <div className="max-w-3xl mx-auto p-6 bg-white shadow rounded-lg">
       <h1 className="text-2xl font-bold text-gray-900 mb-4">{job.title}</h1>
-      {/* ... (rest of the job details rendering - category, description, budget, deadline) ... */}
       <div className="mb-4">
         <span className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2">
           {job.category}
@@ -101,6 +99,10 @@ export default function JobDetailsPage() {
         <SubmitProposal jobId={job.id} />
       )}
 
+      {/* Display ProposalList if the user is the client who posted the job */}
+      {user && user.role === 'client' && user.id === job.client_id && (
+        <ProposalList jobId={job.id} />
+      )}
     </div>
   );
 }

@@ -1,89 +1,63 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../supabase';
-import { useToast } from './useToast';
-import { useAuth } from '../../contexts/AuthContext';
 
-export function useProposals(jobId?: string) {
-  const [proposals, setProposals] = useState<any[]>([]);
+export function useProposals(jobId: string) {
+  const [proposals, setProposals] = useState<any[] | null>(null); // Use any for now, refine later
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth();
-  const { addToast } = useToast();
 
   const fetchProposals = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
-      let query = supabase
+      const { data, error } = await supabase
         .from('proposals')
         .select(`
           *,
-          users!proposals_vendor_id_fkey (
+          vendor:users!proposals_vendor_id_fkey (
             full_name,
             avatar_url
-          ),
-          jobs (
-            title,
-            budget,
-            client_id
           )
-        `);
+        `)
+        .eq('job_id', jobId)
+        .order('created_at', { ascending: false }); // Order by creation date
 
-      // Filter by job if jobId is provided
-      if (jobId) {
-        query = query.eq('job_id', jobId);
-      }
-
-      // Filter based on user role
-      if (user?.role === 'client') {
-        query = query.eq('jobs.client_id', user.id);
-      } else if (user?.role === 'vendor') {
-        query = query.eq('vendor_id', user.id);
-      }
-
-      const { data, error } = await query;
-
-      if (error) {
-        console.error('Error fetching proposals:', error);
-        setError(error.message);
-        addToast('Failed to load proposals', 'error');
-        throw error;
-      }
-
-      setProposals(data || []);
-    } catch (err: any) {
-      console.error('Error fetching proposals:', err);
-      setError(err.message);
-      addToast('Failed to load proposals', 'error');
+      if (error) throw error;
+      setProposals(data);
+    } catch (error: any) {
+      console.error('Error fetching proposals:', error);
+      setError(error.message);
     } finally {
       setLoading(false);
     }
-  }, [user?.id, jobId, addToast]);
+  }, [jobId]);
 
   useEffect(() => {
     fetchProposals();
 
-    // Set up real-time subscription
+    // Set up real-time subscription for new/updated/deleted proposals
     const subscription = supabase
-      .channel('proposals_changes')
+      .channel(`proposals_for_job_${jobId}`)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
           table: 'proposals',
-          filter: jobId ? `job_id=eq.${jobId}` : undefined
+          filter: `job_id=eq.${jobId}`
         },
         (payload) => {
           if (payload.eventType === 'INSERT') {
-            setProposals(prev => [payload.new, ...prev]);
-          } else if (payload.eventType === 'DELETE') {
-            setProposals(prev => prev.filter(p => p.id !== payload.old.id));
+            setProposals(prev => [...(prev || []), payload.new]);
           } else if (payload.eventType === 'UPDATE') {
-            setProposals(prev => prev.map(p => 
-              p.id === payload.new.id ? { ...p, ...payload.new } : p
-            ));
+            setProposals(prev =>
+              prev
+                ? prev.map(p => (p.id === payload.new.id ? { ...p, ...payload.new } : p))
+                : []
+            );
+          } else if (payload.eventType === 'DELETE') {
+            setProposals(prev => prev ? prev.filter(p => p.id !== payload.old.id) : []);
           }
         }
       )
@@ -92,16 +66,12 @@ export function useProposals(jobId?: string) {
     return () => {
       subscription.unsubscribe();
     };
-  }, [fetchProposals, user?.id, jobId]);
-
-  const refresh = useCallback(() => {
-    fetchProposals();
-  }, [fetchProposals]);
+  }, [fetchProposals, jobId]);
 
   return {
     proposals,
     loading,
     error,
-    refresh
+    refresh: fetchProposals, // Expose a refresh function
   };
 }
