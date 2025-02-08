@@ -1,12 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../supabase';
 import { useToast } from './useToast';
+import { useAuth } from '../../contexts/AuthContext'; // Import useAuth
 
 export function useJob(jobId: string) {
   const [job, setJob] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { addToast } = useToast();
+  const { user } = useAuth(); // Get the current user
 
   const fetchJob = useCallback(async () => {
     try {
@@ -24,7 +26,7 @@ export function useJob(jobId: string) {
           job_skills (
             skill
           ),
-          milestones (*)  
+          milestones (*)
         `)
         .eq('id', jobId)
         .single();
@@ -49,7 +51,7 @@ export function useJob(jobId: string) {
   useEffect(() => {
     fetchJob();
 
-    // Set up real-time subscription for job updates (no changes needed here)
+    // Set up real-time subscription for job updates
     const subscription = supabase
       .channel(`job_${jobId}`)
       .on(
@@ -74,7 +76,7 @@ export function useJob(jobId: string) {
     return () => {
       subscription.unsubscribe();
     };
-  }, [fetchJob, jobId]);
+  }, [fetchJob, jobId, addToast]);
 
   const refresh = useCallback(() => {
     fetchJob();

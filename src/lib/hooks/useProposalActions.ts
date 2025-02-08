@@ -10,73 +10,31 @@ export function useProposalActions() {
   const createProposal = async (proposalData: any) => {
     setLoading(true);
     try {
+      // Validate proposal data (using the existing schema, though we might need to adjust it)
       const validatedData = proposalSchema.parse(proposalData);
-      
+
       const { error } = await supabase
         .from('proposals')
-        .insert(validatedData);
+        .insert([validatedData]);
 
       if (error) throw error;
-      
+
       addToast('Proposal submitted successfully', 'success');
-      return true;
+      return true; // Indicate success
     } catch (error: any) {
       console.error('Error creating proposal:', error);
       addToast(error.message || 'Failed to submit proposal', 'error');
-      return false;
+      return false; // Indicate failure
     } finally {
       setLoading(false);
     }
   };
 
-  const updateProposal = async (proposalId: string, proposalData: any) => {
-    setLoading(true);
-    try {
-      const validatedData = proposalSchema.parse(proposalData);
-      
-      const { error } = await supabase
-        .from('proposals')
-        .update(validatedData)
-        .eq('id', proposalId);
-
-      if (error) throw error;
-      
-      addToast('Proposal updated successfully', 'success');
-      return true;
-    } catch (error: any) {
-      console.error('Error updating proposal:', error);
-      addToast(error.message || 'Failed to update proposal', 'error');
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const withdrawProposal = async (proposalId: string) => {
-    setLoading(true);
-    try {
-      const { error } = await supabase
-        .from('proposals')
-        .delete()
-        .eq('id', proposalId);
-
-      if (error) throw error;
-      
-      addToast('Proposal withdrawn successfully', 'success');
-      return true;
-    } catch (error: any) {
-      console.error('Error withdrawing proposal:', error);
-      addToast(error.message || 'Failed to withdraw proposal', 'error');
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Add other proposal-related actions here (update, delete, etc.) as needed
 
   return {
     loading,
     createProposal,
-    updateProposal,
-    withdrawProposal
+    // Add other actions here
   };
 }

@@ -1,12 +1,12 @@
+```tsx
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Briefcase, DollarSign, Clock, MapPin, Star, Award, ChevronDown, Users, List } from 'lucide-react';
+import { Search, Filter, Briefcase, DollarSign, Clock, MapPin, Star, ChevronDown, Users } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
 import { formatCurrency, formatDate } from '../../lib/utils';
 import { useAuth } from '../../contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import { SERVICE_CATEGORIES, EVENT_TYPES } from '../../lib/constants';
-import { useJob } from '../../lib/hooks/useJob'; // Import useJob hook
 
 interface Job {
   id: string;
@@ -24,14 +24,14 @@ interface Job {
     rating: number;
   };
   created_at: string;
-  milestones: any[]; // Add milestones type here - adjust type if needed
+  milestones: any[]; // Add milestones type here
 }
 
 export default function JobMarketplace() {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedEventType, setSelectedEventType] = useState('all'); // Add event type filter state
+  const [selectedEventType, setSelectedEventType] = useState('all');
   const [selectedExperience, setSelectedExperience] = useState('all');
   const [selectedBudget, setSelectedBudget] = useState('all');
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -40,10 +40,10 @@ export default function JobMarketplace() {
 
   const categories = [
     { id: 'all', name: 'All Categories' },
-    ...SERVICE_CATEGORIES // Use SERVICE_CATEGORIES from constants
+    ...SERVICE_CATEGORIES
   ];
 
-  const eventTypes = [ // Event types for filter
+  const eventTypes = [
     { id: 'all', name: 'All Event Types' },
     ...EVENT_TYPES
   ];
@@ -65,7 +65,7 @@ export default function JobMarketplace() {
 
   useEffect(() => {
     fetchJobs();
-  }, [selectedCategory, selectedExperience, selectedBudget, selectedEventType]); // Include eventType in dependency array
+  }, [selectedCategory, selectedExperience, selectedBudget, selectedEventType]);
 
   async function fetchJobs() {
     try {
@@ -74,7 +74,8 @@ export default function JobMarketplace() {
         .from('jobs')
         .select(`
           *,
-          client:users(full_name, rating)
+          client:users(full_name, rating),
+          milestones(*)
         `)
         .eq('status', 'active')
         .order('created_at', { ascending: false });
@@ -83,7 +84,7 @@ export default function JobMarketplace() {
         query = query.eq('category', selectedCategory);
       }
 
-      if (selectedEventType !== 'all') { // Add event type filter
+      if (selectedEventType !== 'all') {
         query = query.eq('event_type', selectedEventType);
       }
 
@@ -182,11 +183,11 @@ export default function JobMarketplace() {
                   Event Type
                 </label>
                 <select
-                  value={selectedEventType} // use selectedEventType
-                  onChange={(e) => setSelectedEventType(e.target.value)} // update selectedEventType
+                  value={selectedEventType}
+                  onChange={(e) => setSelectedEventType(e.target.value)}
                   className="w-full border-gray-300 dark:border-gray-600 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white"
                 >
-                  {eventTypes.map(eventType => ( // map over eventTypes
+                  {eventTypes.map(eventType => (
                     <option key={eventType.id} value={eventType.id}>
                       {eventType.name}
                     </option>
@@ -277,7 +278,8 @@ export default function JobMarketplace() {
                       </span>
                       <span className="inline-flex items-center">
                         <Star className="h-4 w-4 mr-1 text-yellow-400" />
-                        {job.client.rating}/5
+                        {/* Assuming you have a rating field in your client data */}
+                        {job.client.rating !== undefined && job.client.rating !== null ? `${job.client.rating}/5` : 'N/A'}
                       </span>
                       <span className="inline-flex items-center">
                         <MapPin className="h-4 w-4 mr-1" />
@@ -303,37 +305,4 @@ export default function JobMarketplace() {
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                     {job.category}
                   </span>
-                   <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                    {job.event_type}
-                  </span>
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
-                    {job.experience_level}
-                  </span>
-                </div>
-
-                <div className="mt-6 flex items-center justify-between">
-                  <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
-                    <span className="inline-flex items-center">
-                      <Clock className="h-4 w-4 mr-1" />
-                      Posted {formatDate(job.created_at)}
-                    </span>
-                    <span className="inline-flex items-center">
-                      <Briefcase className="h-4 w-4 mr-1" />
-                      {job.proposals_count} proposals
-                    </span>
-                  </div>
-                  <Link
-                    to={`/jobs/${job.id}`}
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                  >
-                    View Details
-                  </Link>
-                </div>
-              </div>
-            </motion.div>
-          ))
-        )}
-      </div>
-    </div>
-  );
-}
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-

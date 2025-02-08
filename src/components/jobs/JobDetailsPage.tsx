@@ -1,24 +1,53 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react'; // Import useEffect
 import { useParams } from 'react-router-dom';
 import { useJob } from '../../lib/hooks/useJob';
 import { LoadingPage } from '../ui/LoadingSpinner';
 import { formatCurrency, formatDate } from '../../lib/utils';
+import SubmitProposal from '../proposals/SubmitProposal'; // Import SubmitProposal
+import { useAuth } from '../../contexts/AuthContext'; // Import useAuth
 
 export default function JobDetailsPage() {
   const { jobId } = useParams();
-  const { job, loading, error } = useJob(jobId || ''); // jobId can be undefined
+  const { job, loading, error, refresh } = useJob(jobId || '');
+  const { user } = useAuth(); // Get the current user
+  const [hasSubmittedProposal, setHasSubmittedProposal] = useState(false);
+
+  // Check if the current user has already submitted a proposal
+  useEffect(() => {
+    const checkIfSubmitted = async () => {
+      if (user && user.role === 'vendor' && job) {
+        const { data, error } = await supabase
+          .from('proposals')
+          .select('id')
+          .eq('job_id', job.id)
+          .eq('vendor_id', user.id)
+          .maybeSingle(); // Use maybeSingle to handle no proposals
+
+        if (error) {
+          console.error("Error checking for existing proposal:", error);
+          // Handle error appropriately, e.g., show a toast message
+        } else {
+          setHasSubmittedProposal(!!data); // Set to true if data exists (proposal found)
+        }
+      }
+    };
+
+    checkIfSubmitted();
+  }, [user, job]);
+
 
   if (loading || !job) {
     return <LoadingPage />;
   }
 
   if (error) {
-    return <div>Error loading job details.</div>; // Basic error handling for now
+    return <div>Error loading job details.</div>;
   }
 
   return (
     <div className="max-w-3xl mx-auto p-6 bg-white shadow rounded-lg">
       <h1 className="text-2xl font-bold text-gray-900 mb-4">{job.title}</h1>
+      {/* ... (rest of the job details rendering - category, description, budget, deadline) ... */}
       <div className="mb-4">
         <span className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2">
           {job.category}
@@ -49,21 +78,29 @@ export default function JobDetailsPage() {
       {job.milestones && job.milestones.length > 0 && (
         <div className="mb-6">
           <h3 className="text-lg font-semibold text-gray-900">Milestones</h3>
-          <ul>
+          <div className="border rounded-md">
             {job.milestones.map((milestone: any) => (
-              <li key={milestone.id} className="py-2">
-                <h4 className="font-semibold">{milestone.title}</h4>
-                <p className="text-gray-600">{milestone.description}</p>
-                <p className="text-sm text-gray-500">Due Date: {formatDate(milestone.due_date)}</p>
-                <p className="text-sm text-gray-500">Payment: {formatCurrency(milestone.payment_amount)}</p>
-                <p className="text-sm text-gray-500">Status: {milestone.status}</p>
-              </li>
+              <div key={milestone.id} className="p-4 border-b last:border-b-0">
+                <h4 className="font-semibold text-gray-900">{milestone.title}</h4>
+                {milestone.description && (
+                  <p className="text-gray-600 mb-2">{milestone.description}</p>
+                )}
+                <div className="flex flex-wrap gap-2 text-sm text-gray-500">
+                  <span>Due Date: {formatDate(milestone.due_date)}</span>
+                  <span>Payment: {formatCurrency(milestone.payment_amount)}</span>
+                  <span>Status: {milestone.status}</span>
+                </div>
+              </div>
             ))}
-          </ul>
+          </div>
         </div>
       )}
 
-      {/* Add more job details here as needed */}
+      {/* Conditionally render SubmitProposal component */}
+      {user && user.role === 'vendor' && !hasSubmittedProposal && (
+        <SubmitProposal jobId={job.id} />
+      )}
+
     </div>
   );
 }
