@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { Briefcase, FileText, MessageSquare, CreditCard, TrendingUp, TrendingDown, Clock, Calendar, Users, CheckCircle, AlertCircle, DollarSign, Star, Award, BarChart2 as ChartBar, Activity, Target, Globe, Zap } from 'lucide-react';
+import { Briefcase, FileText, MessageSquare, CreditCard, TrendingUp, TrendingDown, Clock, Calendar, Users, CheckCircle, AlertCircle, DollarSign, Star, Award, Activity as ChartBar, Activity, Target, Globe, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
 import { Link } from 'react-router-dom';

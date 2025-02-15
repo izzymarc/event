@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ChartBar } from 'lucide-react';
+import { Activity } from 'lucide-react'; // Changed import to Activity
 
 export const PerformanceChart = ({ selectedPeriod, setSelectedPeriod }) => {
   return (
@@ -22,8 +22,8 @@ export const PerformanceChart = ({ selectedPeriod, setSelectedPeriod }) => {
         </select>
       </div>
       <div className="h-64 flex items-center justify-center text-gray-500">
-        {/* Placeholder for chart - You would integrate your preferred charting library here */}
-        <ChartBar className="h-32 w-32" />
+        {/* Placeholder for chart - Using Activity icon as placeholder */}
+        <Activity className="h-32 w-32" />  {/* Changed to Activity icon */}
       </div>
     </motion.div>
   );
