@@ -45,4 +45,5 @@ export const proposalSchema = z.object({
   content: z.string().min(50, 'Proposal must be at least 50 characters'),
   price: z.number().min(1, 'Price must be greater than 0')
 });
+```</boltArtifact>
 ```
