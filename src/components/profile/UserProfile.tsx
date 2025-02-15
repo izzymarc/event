@@ -29,6 +29,7 @@ import { profileSchema } from '../../lib/validation/schemas';
 import ChangePasswordForm from '../auth/ChangePasswordForm';
 import ServicePackages from './ServicePackages';
 import { Rating } from '../ui/Rating';
+import { formatDate } from '../../lib/utils'; // Import formatDate
 
 interface UserProfileProps {
   userId?: string;
@@ -55,7 +56,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId: profileUserId }) => {
   });
   const [vendorServicePackages, setVendorServicePackages] = useState<any[]>([]);
   const [packagesLoading, setPackagesLoading] = useState(false);
-  const [reviewCount, setReviewCount] = useState<number>(0); // State for review count
+  const [reviewCount, setReviewCount] = useState<number>(0);
 
 
   const fetchProfileData = useCallback(async () => {
@@ -106,7 +107,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId: profileUserId }) => {
         }));
       }
       if (countData) {
-        setReviewCount(countData); // Set the review count
+        setReviewCount(countData);
       }
     } catch (error: any) {
       console.error('Error fetching profile:', error);
@@ -226,13 +227,43 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId: profileUserId }) => {
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{profile.full_name || 'No Name'}</h2>
               <div className="mt-1 flex items-center">
                 <Rating rating={profile.rating || 0} starSize={16} />
-                <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">({reviewCount} reviews)</span> {/* Dynamic review count here */}
+                <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">({reviewCount} reviews)</span>
               </div>
               <p className="text-gray-500 dark:text-gray-400">{profile.title || 'No title set'}</p>
             </div>
             <div className="mt-4">
               <p className="text-gray-700 dark:text-gray-300">{profile.bio || 'No bio available.'}</p>
             </div>
+
+            {/* New Profile Details Section */}
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {profile.location && (
+                <div className="flex items-center text-gray-500 dark:text-gray-400">
+                  <MapPin className="h-4 w-4 mr-2" />
+                  <span>{profile.location}</span>
+                </div>
+              )}
+              {profile.availability && (
+                <div className="flex items-center text-gray-500 dark:text-gray-400">
+                  <Clock className="h-4 w-4 mr-2" />
+                  <span>Availability: {profile.availability}</span>
+                </div>
+              )}
+              {profile.hourly_rate && (
+                <div className="flex items-center text-gray-500 dark:text-gray-400">
+                  <DollarSign className="h-4 w-4 mr-2" />
+                  <span>Hourly Rate: {formatCurrency(profile.hourly_rate)}</span>
+                </div>
+              )}
+              {user && user.created_at && ( // Display "Member since" for all users
+                <div className="flex items-center text-gray-500 dark:text-gray-400">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  <span>Member since: {formatDate(user.created_at)}</span>
+                </div>
+              )}
+            </div>
+
+
              {/* ... rest of the profile details */}
            </div>
         </div>
