@@ -1,4 +1,3 @@
-// src/lib/validation/schemas.ts
 import { z } from 'zod';
 
 export const signUpSchema = z.object({
@@ -19,18 +18,18 @@ export const signInSchema = z.object({
   password: z.string().min(1, 'Password is required')
 });
 
-// Simplified profileSchema with minimal Zod usage
+// Updated profileSchema to include new fields with validation
 export const profileSchema = z.object({
   fullName: z.string().min(2, 'Name must be at least 2 characters'),
   title: z.string().optional(),
-  bio: z.string().optional(),
+  bio: z.string().max(500, 'Bio must be less than 500 characters').optional(),
   location: z.string().optional(),
-  hourlyRate: z.string().optional(), // Changed to z.string() for minimal validation
-  availability: z.enum(['available', 'busy', 'away']).optional(),
-  skills: z.array(z.string()).optional(),
-  portfolio_website_url: z.string().url().optional(),
-  linkedin_url: z.string().url().optional(),
-  github_url: z.string().url().optional()
+  hourlyRate: z.number().min(0, 'Hourly rate must be positive').optional(),
+  availability: z.enum(['available', 'busy', 'away']).optional(), // Availability enum
+  skills: z.array(z.string()).optional(), // Skills validation (array of strings, optional)
+  portfolio_website_url: z.string().url().optional(), // Portfolio URL validation
+  linkedin_url: z.string().url().optional(), // LinkedIn URL validation
+  github_url: z.string().url().optional() // GitHub URL validation
 });
 
 export const jobSchema = z.object({
@@ -48,13 +47,3 @@ export const proposalSchema = z.object({
 });
 ```</boltArtifact>
 ```
-
-In this artifact, we've made a significant simplification to `profileSchema` in `src/lib/validation/schemas.ts`:
-
-*   **Changed `hourlyRate` Validation:**
-    *   We've changed the validation for `hourlyRate` from `z.number().min(0, 'Hourly rate must be positive').optional()` to `z.string().optional()`.
-    *   Now, `hourlyRate` is simply validated as an optional string, removing the `z.number()` and `.min()` validations that were potentially causing the `TypeError`.
-
-With this change, we've minimized the usage of `zod` in `profileSchema` to just basic string and optional validations. After applying this artifact, please check if the preview error is resolved.
-
-If the error disappears with this simplification, it will strongly suggest that the issue is specifically related to `z.number()` or its associated methods like `.min()` in the WebContainer environment. If the error still persists, even with this minimal schema, then the problem is likely not directly within `profileSchema` or with `z.number()` itself, and we will need to investigate other potential causes.
