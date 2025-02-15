@@ -24,12 +24,12 @@ export const profileSchema = z.object({
   title: z.string().optional(),
   bio: z.string().max(500, 'Bio must be less than 500 characters').optional(),
   location: z.string().optional(),
-  hourlyRate: z.number().min(0, 'Hourly rate must be positive').optional(),
-  availability: z.enum(['available', 'busy', 'away']).optional(), // Availability enum
-  skills: z.array(z.string()).optional(), // Skills validation (array of strings, optional)
-  portfolio_website_url: z.string().url().optional(), // Portfolio URL validation
-  linkedin_url: z.string().url().optional(), // LinkedIn URL validation
-  github_url: z.string().url().optional() // GitHub URL validation
+  hourlyRate: z.string().optional(),
+  availability: z.enum(['available', 'busy', 'away']).optional(),
+  skills: z.array(z.string()).optional(),
+  portfolio_website_url: z.string().url().optional(),
+  linkedin_url: z.string().url().optional(),
+  github_url: z.string().url().optional()
 });
 
 export const jobSchema = z.object({
@@ -45,5 +45,3 @@ export const proposalSchema = z.object({
   content: z.string().min(50, 'Proposal must be at least 50 characters'),
   price: z.number().min(1, 'Price must be greater than 0')
 });
-```</boltArtifact>
-```
