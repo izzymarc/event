@@ -26,20 +26,25 @@ import {
 } from 'lucide-react';
 import { useToast } from '../../lib/hooks/useToast';
 import { profileSchema } from '../../lib/validation/schemas';
+import ChangePasswordForm from '../auth/ChangePasswordForm';
+import ServicePackages from './ServicePackages';
+import { Rating } from '../ui/Rating';
 
-// ... (interfaces)
+interface UserProfileProps {
+  userId?: string;
+}
 
-export default function UserProfile() {
-  const { user } = useAuth(); // Use useAuth hook to get current user
+const UserProfile: React.FC<UserProfileProps> = ({ userId: profileUserId }) => {
+  const { user, updateUser } = useAuth();
   const { addToast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setLoading] = useState(false);
-  const [profile, setProfile] = useState({ // Profile state
-    full_name: user?.full_name || '', // Default from auth context
+  const [profile, setProfile] = useState({
+    full_name: user?.full_name || '',
     title: '',
     location: '',
     bio: '',
-    avatar_url: user?.avatar_url || '', // Default from auth context
+    avatar_url: user?.avatar_url || '',
     hourly_rate: 0,
     availability: 'available',
     languages: [] as string[],
@@ -48,41 +53,60 @@ export default function UserProfile() {
     github_url: '',
     linkedin_url: ''
   });
+  const [vendorServicePackages, setVendorServicePackages] = useState<any[]>([]);
+  const [packagesLoading, setPackagesLoading] = useState(false);
+  const [reviewCount, setReviewCount] = useState<number>(0); // State for review count
 
-  // ... (editingExperience, editingEducation, etc., newExperience, newEducation, etc.)
 
   const fetchProfileData = useCallback(async () => {
-    if (!user?.id) return; // Exit if user or user.id is not available yet
+    const uid = profileUserId || user?.id;
+    if (!uid) return;
 
     try {
       setLoading(true);
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
-        .eq('user_id', user.id) // Fetch profile for the current user.id
+        .eq('user_id', uid)
         .single();
 
       if (profileError) throw profileError;
+
+      // Fetch user rating
+      const { data: ratingData, error: ratingError } = await supabase.rpc('calculate_user_rating', {
+        p_user_id: uid,
+      });
+
+      if (ratingError) {
+        console.error('Error fetching user rating:', ratingError);
+      }
+
+       // Fetch review count
+      const { data: countData, error: countError } = await supabase
+        .from('user_ratings')
+        .select('*', { count: 'exact', head: true })
+        .eq('rated_id', uid);
+
+      if (countError) {
+        console.error('Error fetching review count:', countError);
+      }
+
 
       if (profileData) {
         setProfile(prev => ({
           ...prev,
           ...profileData,
+          rating: ratingData,
           hourly_rate: profileData.hourly_rate || 0,
           availability: profileData.availability || 'available',
           portfolio_website_url: profileData.portfolio_website_url || '',
           linkedin_url: profileData.linkedin_url || '',
-          github_url: profileData.github_url || ''
+          github_url: profileData.github_url || '',
+          skills: profileData.skills || []
         }));
-      } else {
-        setProfile(prev => ({ // Initialize with defaults if no profile data
-          ...prev,
-          hourly_rate: 0,
-          availability: 'available',
-          portfolio_website_url: '',
-          linkedin_url: '',
-          github_url: ''
-        }));
+      }
+      if (countData) {
+        setReviewCount(countData); // Set the review count
       }
     } catch (error: any) {
       console.error('Error fetching profile:', error);
@@ -90,18 +114,136 @@ export default function UserProfile() {
     } finally {
       setLoading(false);
     }
-  }, [user?.id, addToast]); // Dependency on user?.id
+  }, [profileUserId, user?.id, addToast]);
+
+  const fetchVendorServicePackages = useCallback(async () => {
+    const uid = profileUserId || user?.id;
+    if (!uid) return;
+
+    setPackagesLoading(true);
+    try {
+      const { data: packagesData, error: packagesError } = await supabase
+        .from('service_packages')
+        .select('*')
+        .eq('vendor_id', uid);
+
+      if (packagesError) throw packagesError;
+      setVendorServicePackages(packagesData || []);
+    } catch (error: any) {
+      console.error('Error fetching service packages:', error);
+      addToast(error.message || 'Failed to load service packages', 'error');
+    } finally {
+      setPackagesLoading(false);
+    }
+  }, [profileUserId,  user?.id, addToast]);
+
 
   useEffect(() => {
-    fetchProfileData(); // Fetch profile data on component mount and when user?.id changes
-  }, [fetchProfileData]);
+    fetchProfileData();
+    fetchVendorServicePackages();
+  }, [fetchProfileData, fetchVendorServicePackages]);
 
-  // ... (handleSave, handleAddExperience, etc. - no changes needed here)
-  // ... (rest of the component - render function)
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setProfile(prevState => ({
+      ...prevState,
+      [name]: value,
+    }));
+  };
+
+  const handleSkillsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const skillsArray = e.target.value.split(',').map(skill => skill.trim());
+    setProfile(prevState => ({
+      ...prevState,
+      skills: skillsArray,
+    }));
+  };
+
+
+  const handleSave = async () => {
+    setLoading(true);
+    setIsEditing(false);
+    try {
+      const validatedData = profileSchema.parse({
+        ...profile,
+        hourlyRate: parseFloat(String(profile.hourly_rate))
+      });
+
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .upsert({
+          user_id: user?.id,
+          full_name: validatedData.fullName,
+          title: validatedData.title,
+          bio: validatedData.bio,
+          location: validatedData.location,
+          hourly_rate: validatedData.hourlyRate,
+          availability: validatedData.availability,
+          skills: validatedData.skills,
+          portfolio_website_url: validatedData.portfolio_website_url,
+          linkedin_url: validatedData.linkedin_url,
+          github_url: validatedData.github_url
+        });
+
+      if (updateError) throw updateError;
+
+      if (user) {
+        updateUser({ ...user, full_name: validatedData.fullName });
+      }
+
+      addToast('Profile updated successfully!', 'success');
+    } catch (error: any) {
+      console.error('Profile update error:', error);
+      addToast(error.message || 'Failed to update profile', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    fetchProfileData();
+  };
+
 
   return (
     <div className="max-w-7xl mx-auto">
-      {/* ... (rest of the component) */}
+      {/* Profile Header */}
+      <div className="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6 mb-8">
+        <div className="flex items-start">
+          <div className="flex-shrink-0">
+            <div className="h-20 w-20 rounded-full border border-gray-300 dark:border-gray-700 overflow-hidden">
+              {profile.avatar_url ? (
+                <img src={profile.avatar_url} alt="Profile" className="object-cover w-full h-full" />
+              ) : (
+                <Briefcase className="h-full w-full p-4 text-gray-500 dark:text-gray-400" />
+              )}
+            </div>
+          </div>
+          <div className="ml-4 flex-1">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{profile.full_name || 'No Name'}</h2>
+              <div className="mt-1 flex items-center">
+                <Rating rating={profile.rating || 0} starSize={16} />
+                <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">({reviewCount} reviews)</span> {/* Dynamic review count here */}
+              </div>
+              <p className="text-gray-500 dark:text-gray-400">{profile.title || 'No title set'}</p>
+            </div>
+            <div className="mt-4">
+              <p className="text-gray-700 dark:text-gray-300">{profile.bio || 'No bio available.'}</p>
+            </div>
+             {/* ... rest of the profile details */}
+           </div>
+        </div>
+      </div>
+
+      {/* ... rest of the profile sections like "Skills", "Portfolio", "ServicePackages" */}
+      <section className="mt-8">
+        <ServicePackages vendorId={profileUserId || user?.id} isOwnProfile={!profileUserId} packages={vendorServicePackages} loading={packagesLoading} />
+      </section>
     </div>
   );
-}
+};
+
+export default UserProfile;

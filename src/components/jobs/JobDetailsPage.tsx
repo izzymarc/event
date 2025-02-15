@@ -4,14 +4,16 @@ import { useJob } from '../../lib/hooks/useJob';
 import { LoadingPage } from '../ui/LoadingSpinner';
 import { formatCurrency, formatDate } from '../../lib/utils';
 import SubmitProposal from '../proposals/SubmitProposal';
+import ProposalList from '../proposals/ProposalList';
 import { useAuth } from '../../contexts/AuthContext';
-import ProposalList from '../proposals/ProposalList'; // Import ProposalList
+import { ReviewForm } from '../ui/ReviewForm'; // Import ReviewForm
 
 export default function JobDetailsPage() {
   const { jobId } = useParams();
   const { job, loading, error, refresh } = useJob(jobId || '');
   const { user } = useAuth();
   const [hasSubmittedProposal, setHasSubmittedProposal] = useState(false);
+  const [showReviewForm, setShowReviewForm] = useState(false); // State to control review form visibility
 
   useEffect(() => {
     const checkIfSubmitted = async () => {
@@ -42,6 +44,16 @@ export default function JobDetailsPage() {
   if (error) {
     return <div>Error loading job details.</div>;
   }
+
+  const handleReviewSubmitSuccess = () => {
+    setShowReviewForm(false); // Hide review form after successful submission
+    refresh(); // Refresh job details to update any rating changes (if needed)
+  };
+
+  const handleReviewCancel = () => {
+    setShowReviewForm(false); // Hide review form when cancelled
+  };
+
 
   return (
     <div className="max-w-3xl mx-auto p-6 bg-white shadow rounded-lg">
@@ -93,6 +105,26 @@ export default function JobDetailsPage() {
           </div>
         </div>
       )}
+
+      {/* Conditionally render ReviewForm for client after job completion */}
+      {user && user.role === 'client' && job.status === 'completed' && !showReviewForm && (
+        <motion.button
+          onClick={() => setShowReviewForm(true)}
+          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        >
+          Review Vendor
+        </motion.button>
+      )}
+
+      {showReviewForm && user && user.role === 'client' && job.status === 'completed' && (
+        <ReviewForm
+          jobId={job.id}
+          vendorId={/* Assuming you have vendor_id available in job object */ job.accepted_proposal?.vendor_id} // Replace with actual vendor ID
+          onSubmitSuccess={handleReviewSubmitSuccess}
+          onCancel={handleReviewCancel}
+        />
+      )}
+
 
       {/* Conditionally render SubmitProposal component */}
       {user && user.role === 'vendor' && !hasSubmittedProposal && (

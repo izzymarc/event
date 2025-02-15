@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../supabase';
 
 export function useProposals(jobId: string) {
-  const [proposals, setProposals] = useState<any[] | null>(null); // Use any for now, refine later
+  const [proposals, setProposals] = useState<any[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -18,10 +18,13 @@ export function useProposals(jobId: string) {
           vendor:users!proposals_vendor_id_fkey (
             full_name,
             avatar_url
+          ),
+          portfolio_items:proposal_portfolio_items!inner(
+            portfolio_item(*)
           )
         `)
         .eq('job_id', jobId)
-        .order('created_at', { ascending: false }); // Order by creation date
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
       setProposals(data);
@@ -72,6 +75,6 @@ export function useProposals(jobId: string) {
     proposals,
     loading,
     error,
-    refresh: fetchProposals, // Expose a refresh function
+    refresh: fetchProposals,
   };
 }

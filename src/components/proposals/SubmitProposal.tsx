@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useProposalActions } from '../../lib/hooks/useProposalActions'; // We'll create this hook later
+import { useProposalActions } from '../../lib/hooks/useProposalActions';
 import { useToast } from '../../lib/hooks/useToast';
 import { motion } from 'framer-motion';
-import { FileText, DollarSign, Send } from 'lucide-react';
+import { FileText, DollarSign, Send, Paperclip } from 'lucide-react';
+import { usePortfolio } from '../../lib/hooks/usePortfolio';
+import { LoadingPage } from '../ui/LoadingSpinner';
 
 interface SubmitProposalProps {
   jobId: string;
@@ -11,11 +13,19 @@ interface SubmitProposalProps {
 
 export default function SubmitProposal({ jobId }: SubmitProposalProps) {
   const { user } = useAuth();
-  const { createProposal } = useProposalActions(); // Custom hook for proposal actions
+  const { createProposal } = useProposalActions();
   const { addToast } = useToast();
   const [content, setContent] = useState('');
   const [price, setPrice] = useState('');
+  const [coverLetter, setCoverLetter] = useState('');
   const [loading, setLoading] = useState(false);
+  const { items: portfolioItems, loading: portfolioLoading } = usePortfolio(user?.id || '');
+  const [selectedPortfolioItems, setSelectedPortfolioItems] = useState<string[]>([]); // State for selected portfolio items
+
+  useEffect(() => {
+    if (!user?.id) return;
+    // Portfolio items are already being fetched by usePortfolio hook
+  }, [user?.id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,18 +46,22 @@ export default function SubmitProposal({ jobId }: SubmitProposalProps) {
     try {
       const proposalData = {
         job_id: jobId,
-        vendor_id: user.id, // Use the logged-in user's ID
+        vendor_id: user.id,
         content,
         price: parseFloat(price),
-        status: 'pending', // Initial status
+        cover_letter: coverLetter,
+        status: 'pending',
+        portfolio_item_ids: selectedPortfolioItems, // Include selected portfolio item IDs
       };
 
-      const success = await createProposal(proposalData); // Call the createProposal action
+      const success = await createProposal(proposalData);
 
       if (success) {
         addToast('Proposal submitted successfully!', 'success');
         setContent('');
         setPrice('');
+        setCoverLetter('');
+        setSelectedPortfolioItems([]); // Clear selected portfolio items after submission
       }
     } catch (error: any) {
       addToast(error.message || 'Failed to submit proposal.', 'error');
@@ -57,14 +71,50 @@ export default function SubmitProposal({ jobId }: SubmitProposalProps) {
   };
 
   if (!user || user.role !== 'vendor') {
-    return null; // Don't render anything if not logged in or not a vendor
+    return null;
   }
+
+  if (portfolioLoading) {
+    return <LoadingPage />;
+  }
+
+  const handlePortfolioItemSelection = (itemId: string) => {
+    setSelectedPortfolioItems(prevItems => {
+      if (prevItems.includes(itemId)) {
+        return prevItems.filter(id => id !== itemId); // Deselect if already selected
+      } else {
+        return [...prevItems, itemId]; // Select if not already selected
+      }
+    });
+  };
+
 
   return (
     <div className="bg-white p-6 rounded-lg shadow">
       <h2 className="text-lg font-medium text-gray-900 mb-4">Submit a Proposal</h2>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div>
+          <label htmlFor="coverLetter" className="block text-sm font-medium text-gray-700">
+            Cover Letter
+          </label>
+          <div className="mt-1 relative">
+            <div className="absolute top-3 left-3 pointer-events-none">
+              <FileText className="h-5 w-5 text-gray-400" />
+            </div>
+            <textarea
+              id="coverLetter"
+              name="coverLetter"
+              value={coverLetter}
+              onChange={(e) => setCoverLetter(e.target.value)}
+              rows={4}
+              className="pl-10 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              placeholder="Write a cover letter to introduce yourself and explain why you are a good fit for this job..."
+              required
+            />
+          </div>
+        </div>
+
         <div>
           <label htmlFor="content" className="block text-sm font-medium text-gray-700">
             Proposal Details
@@ -80,7 +130,7 @@ export default function SubmitProposal({ jobId }: SubmitProposalProps) {
               onChange={(e) => setContent(e.target.value)}
               rows={4}
               className="pl-10 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              placeholder="Describe your proposal and why you're the best fit for this job..."
+              placeholder="Provide specific details about your proposal and how you plan to approach this job..."
               required
             />
           </div>
@@ -106,6 +156,37 @@ export default function SubmitProposal({ jobId }: SubmitProposalProps) {
               min="1"
             />
           </div>
+        </div>
+
+        {/* Portfolio Section */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            Portfolio Items (Optional)
+          </label>
+          {portfolioLoading ? (
+            <div>Loading portfolio...</div>
+          ) : (
+            <ul className="mt-2 space-y-2">
+              {portfolioItems.map(item => (
+                <li key={item.id} className="flex items-center">
+                  <input
+                    id={`portfolio-item-${item.id}`}
+                    type="checkbox"
+                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                    value={item.id}
+                    checked={selectedPortfolioItems.includes(item.id)}
+                    onChange={() => handlePortfolioItemSelection(item.id)}
+                  />
+                  <label htmlFor={`portfolio-item-${item.id}`} className="ml-3 block text-sm text-gray-700">
+                    {item.title}
+                  </label>
+                </li>
+              ))}
+              {portfolioItems.length === 0 && (
+                <li className="text-gray-500">No portfolio items available. Add some in your profile settings.</li>
+              )}
+            </ul>
+          )}
         </div>
 
         <motion.button

@@ -1,4 +1,3 @@
-```tsx
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, Briefcase, DollarSign, Clock, MapPin, Star, ChevronDown, Users } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -31,7 +30,7 @@ export default function JobMarketplace() {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedEventType, setSelectedEventType] = useState('all');
+  const [selectedEventType, setSelectedEventType] = useState('all'); // Added selectedEventType state
   const [selectedExperience, setSelectedExperience] = useState('all');
   const [selectedBudget, setSelectedBudget] = useState('all');
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -85,7 +84,7 @@ export default function JobMarketplace() {
       }
 
       if (selectedEventType !== 'all') {
-        query = query.eq('event_type', selectedEventType);
+        query = query.eq('event_type', selectedEventType); // Apply event_type filter
       }
 
       if (selectedExperience !== 'all') {

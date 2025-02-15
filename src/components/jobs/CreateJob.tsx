@@ -24,7 +24,7 @@ export default function CreateJob() {
     title: '',
     description: '',
     category: '',
-    event_type: '',
+    event_type: '', // Added event_type
     budget: '',
     deadline: '',
     experienceLevel: 'intermediate',
@@ -43,7 +43,7 @@ export default function CreateJob() {
         title: formData.title,
         description: formData.description,
         category: formData.category,
-        event_type: formData.event_type,
+        event_type: formData.event_type, // Include event_type
         budget: parseFloat(formData.budget),
         deadline: formData.deadline,
         experience_level: formData.experienceLevel,
