@@ -30,7 +30,7 @@ export default function JobMarketplace() {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedEventType, setSelectedEventType] = useState('all'); // Added selectedEventType state
+  const [selectedEventType, setSelectedEventType] = useState('all');
   const [selectedExperience, setSelectedExperience] = useState('all');
   const [selectedBudget, setSelectedBudget] = useState('all');
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -84,7 +84,7 @@ export default function JobMarketplace() {
       }
 
       if (selectedEventType !== 'all') {
-        query = query.eq('event_type', selectedEventType); // Apply event_type filter
+        query = query.eq('event_type', selectedEventType);
       }
 
       if (selectedExperience !== 'all') {
@@ -304,4 +304,18 @@ export default function JobMarketplace() {
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                     {job.category}
                   </span>
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                    {job.event_type}
+                  </span>
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                    {job.experience_level}
+                  </span>
+                </div>
+              </div>
+            </motion.div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
