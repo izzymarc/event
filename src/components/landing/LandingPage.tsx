@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -12,33 +12,37 @@ import {
   ArrowRight,
   Star,
   Award,
-  TrendingUp
+  TrendingUp,
+  Search
 } from 'lucide-react';
+import { SERVICE_CATEGORIES } from '../../lib/constants';
 
 export default function LandingPage() {
+  const [searchQuery, setSearchQuery] = useState('');
+
   const features = [
     {
       icon: Users,
       title: 'Expert Network',
-      description: 'Connect with top-tier event professionals and vendors worldwide.',
+      description: 'Access a global network of vetted event professionals. Find the perfect talent for any event, from planners to vendors.',
       color: 'bg-blue-500'
     },
     {
       icon: Briefcase,
-      title: 'Job Marketplace',
-      description: 'Find and post event opportunities with our intelligent matching system.',
+      title: 'Seamless Job Marketplace',
+      description: 'Post event opportunities and browse listings effortlessly. Our intelligent matching system connects you with the right people, faster.',
       color: 'bg-purple-500'
     },
     {
       icon: Shield,
-      title: 'Secure Payments',
-      description: 'Protected transactions with our advanced escrow service.',
+      title: 'Secure & Protected Payments',
+      description: 'Enjoy peace of mind with our secure payment processing. Our escrow service ensures safe and reliable transactions for every project.',
       color: 'bg-green-500'
     },
     {
       icon: MessageSquare,
-      title: 'Real-time Chat',
-      description: 'Seamless communication between clients and vendors.',
+      title: 'Real-time Collaboration',
+      description: 'Communicate and collaborate in real-time with built-in messaging tools. Stay connected and keep your projects on track, every step of the way.',
       color: 'bg-pink-500'
     }
   ];
@@ -74,11 +78,20 @@ export default function LandingPage() {
     { value: '50+', label: 'Countries' }
   ];
 
+  const handleSearchSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    // Implement search functionality here, e.g., navigate to jobs page with search query
+    console.log('Search query:', searchQuery);
+    // For now, let's just navigate to the jobs page (you can modify this)
+    window.location.href = `/jobs?search=${searchQuery}`;
+  };
+
+
   return (
     <div className="bg-white">
       {/* Hero Section */}
       <div className="relative overflow-hidden">
-        <div 
+        <div
           className="absolute inset-0 bg-cover bg-center z-0"
           style={{
             backgroundImage: 'url(https://images.unsplash.com/photo-1505236858219-8359eb29e329?ixlib=rb-1.2.1&auto=format&fit=crop&w=2000&q=80)',
@@ -94,12 +107,33 @@ export default function LandingPage() {
               className="text-center"
             >
               <h1 className="text-4xl tracking-tight font-extrabold text-white sm:text-5xl md:text-6xl">
-                <span className="block">Transform Your</span>
-                <span className="block text-indigo-400">Event Business</span>
+                <span className="block">Find the perfect event professional, or</span>
+                <span className="block text-indigo-400">Get hired for your expertise.</span>
               </h1>
               <p className="mt-6 max-w-lg mx-auto text-xl text-gray-300 sm:max-w-3xl">
-                Connect with top event professionals, manage projects seamlessly, and grow your business with our all-in-one platform.
+                EventWork is the leading platform connecting clients with talented event professionals. Post jobs, submit proposals, and collaborate seamlessly.
               </p>
+              {/* Search Bar */}
+              <motion.form
+                onSubmit={handleSearchSubmit}
+                className="mt-8 max-w-lg mx-auto w-full"
+              >
+                <div className="relative">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                    <Search className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                  </div>
+                  <input
+                    type="search"
+                    name="search"
+                    id="search"
+                    placeholder="Search for event jobs or professionals"
+                    className="block w-full rounded-full border-0 bg-white py-2 pl-10 pr-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+              </motion.form>
+
               <div className="mt-10 flex justify-center gap-4">
                 <motion.div
                   whileHover={{ scale: 1.05 }}
@@ -110,7 +144,6 @@ export default function LandingPage() {
                     className="inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-full text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
                   >
                     Get Started
-                    <ArrowRight className="ml-2 h-5 w-5" />
                   </Link>
                 </motion.div>
                 <motion.div
@@ -129,6 +162,44 @@ export default function LandingPage() {
           </div>
         </div>
       </div>
+
+      {/* Browse Categories Section */}
+      <div className="bg-gray-50 py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            viewport={{ once: true }}
+            className="text-center mb-10"
+          >
+            <h2 className="text-3xl font-extrabold text-gray-900">
+              Browse Event Services
+            </h2>
+            <p className="mt-4 text-xl text-gray-600">
+              Explore top categories and find the right professionals for your event needs.
+            </p>
+          </motion.div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {SERVICE_CATEGORIES.map((category) => (
+              <motion.div
+                key={category.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 * SERVICE_CATEGORIES.indexOf(category) }}
+                viewport={{ once: true }}
+                className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300"
+              >
+                <Link to={`/jobs?category=${category.id}`} className="block p-6">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">{category.name}</h3>
+                  <p className="text-gray-500">Find {category.name} experts</p>
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </div>
+
 
       {/* Stats Section */}
       <div className="bg-indigo-900 py-12">
@@ -152,7 +223,7 @@ export default function LandingPage() {
       </div>
 
       {/* Features Section */}
-      <div className="py-24 bg-gray-50">
+      <div className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <motion.div
@@ -162,10 +233,10 @@ export default function LandingPage() {
               viewport={{ once: true }}
             >
               <h2 className="text-3xl font-extrabold text-gray-900">
-                Everything you need to succeed
+                Powering the event industry with innovation
               </h2>
               <p className="mt-4 text-xl text-gray-600">
-                Powerful tools and features designed for the modern event industry
+                Explore the features that make EventWork the platform of choice for event professionals and businesses.
               </p>
             </motion.div>
           </div>
@@ -214,10 +285,10 @@ export default function LandingPage() {
               viewport={{ once: true }}
             >
               <h2 className="text-3xl font-extrabold text-gray-900">
-                Trusted by event professionals
+                See what our community is saying
               </h2>
               <p className="mt-4 text-xl text-gray-600">
-                Join thousands of successful event businesses
+                Real stories from event professionals and clients who are transforming their businesses with EventWork.
               </p>
             </motion.div>
           </div>
@@ -262,7 +333,7 @@ export default function LandingPage() {
 
       {/* CTA Section */}
       <div className="relative bg-indigo-600 overflow-hidden">
-        <div 
+        <div
           className="absolute inset-0 bg-cover bg-center opacity-10"
           style={{
             backgroundImage: 'url(https://images.unsplash.com/photo-1531545514256-b1400bc00f31?ixlib=rb-1.2.1&auto=format&fit=crop&w=2000&q=80)'
@@ -277,10 +348,10 @@ export default function LandingPage() {
               viewport={{ once: true }}
             >
               <h2 className="text-3xl font-extrabold text-white sm:text-4xl">
-                Ready to grow your event business?
+                Ready to take your events to the next level?
               </h2>
               <p className="mt-4 text-xl text-indigo-100">
-                Join thousands of event professionals already using EventWork
+                Join EventWork today and start connecting with the best event professionals in the industry.
               </p>
               <div className="mt-8 flex justify-center">
                 <motion.div

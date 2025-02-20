@@ -1,80 +1,122 @@
 import React from 'react';
 import { Github, Twitter, Linkedin } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { SERVICE_CATEGORIES, ROUTES } from '../lib/constants';
 
 function Footer() {
   return (
     <footer className="bg-gray-900 text-gray-300">
       <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
           <div>
-            <h3 className="text-white font-semibold text-lg mb-4">About Us</h3>
+            <h3 className="text-white font-semibold text-lg mb-4">EventWork</h3>
             <p className="text-gray-400">
-              Building the future of web development with modern tools and technologies.
+              The modern platform connecting event professionals and clients.
             </p>
           </div>
           <div>
-            <h3 className="text-white font-semibold text-lg mb-4">Quick Links</h3>
+            <h3 className="text-white font-semibold text-lg mb-4">For Clients</h3>
             <ul className="space-y-2">
               <li>
-                <a href="#" className="hover:text-white transition-colors">Home</a>
+                <Link to={ROUTES.SIGN_UP} className="hover:text-white transition-colors">
+                  How to Hire
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition-colors">Features</a>
+                <Link to={ROUTES.JOBS} className="hover:text-white transition-colors">
+                  Find Professionals
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition-colors">Pricing</a>
+                <Link to="/post-job" className="hover:text-white transition-colors">
+                  Post a Job
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition-colors">Contact</a>
+                <a href="#" className="hover:text-white transition-colors">
+                  Payment Options
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-white transition-colors">
+                  Client Resources
+                </a>
               </li>
             </ul>
           </div>
           <div>
-            <h3 className="text-white font-semibold text-lg mb-4">Resources</h3>
+            <h3 className="text-white font-semibold text-lg mb-4">For Professionals</h3>
             <ul className="space-y-2">
               <li>
-                <a href="#" className="hover:text-white transition-colors">Documentation</a>
+                <Link to={ROUTES.SIGN_UP} className="hover:text-white transition-colors">
+                  Find Work
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition-colors">Blog</a>
+                <Link to={ROUTES.JOBS} className="hover:text-white transition-colors">
+                  Browse Jobs
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition-colors">Support</a>
+                <a href="#" className="hover:text-white transition-colors">
+                  Get Paid
+                </a>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
+                <a href="#" className="hover:text-white transition-colors">
+                  Professional Resources
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-white transition-colors">
+                  Success Stories
+                </a>
               </li>
             </ul>
           </div>
           <div>
-            <h3 className="text-white font-semibold text-lg mb-4">Connect</h3>
-            <div className="flex space-x-4">
-              <a
-                href="#"
-                className="hover:text-white transition-colors"
-                aria-label="GitHub"
-              >
-                <Github className="w-6 h-6" />
-              </a>
-              <a
-                href="#"
-                className="hover:text-white transition-colors"
-                aria-label="Twitter"
-              >
-                <Twitter className="w-6 h-6" />
-              </a>
-              <a
-                href="#"
-                className="hover:text-white transition-colors"
-                aria-label="LinkedIn"
-              >
-                <Linkedin className="w-6 h-6" />
-              </a>
-            </div>
+            <h3 className="text-white font-semibold text-lg mb-4">Company</h3>
+            <ul className="space-y-2">
+              <li>
+                <Link to="/about" className="hover:text-white transition-colors">About Us</Link>
+              </li>
+              <li>
+                <Link to="/careers" className="hover:text-white transition-colors">Careers</Link>
+              </li>
+              <li>
+                <Link to="/press" className="hover:text-white transition-colors">Press</Link>
+              </li>
+              <li>
+                <Link to="/contact" className="hover:text-white transition-colors">Contact Us</Link>
+              </li>
+              <li>
+                <Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
+              </li>
+              <li>
+                <Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h3 className="text-white font-semibold text-lg mb-4">Browse Services</h3>
+            <ul className="space-y-2">
+              {SERVICE_CATEGORIES.map(category => (
+                <li key={category.id}>
+                  <Link to={`/jobs?category=${category.id}`} className="hover:text-white transition-colors">
+                    {category.name}
+                  </Link>
+                </li>
+              ))}
+              <li>
+                <Link to={ROUTES.JOBS} className="hover:text-white transition-colors">
+                  All Services
+                </Link>
+              </li>
+            </ul>
           </div>
         </div>
         <div className="border-t border-gray-800 mt-8 pt-8 text-center">
-          <p>&copy; {new Date().getFullYear()} Your Company. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} EventWork. All rights reserved.</p>
         </div>
       </div>
     </footer>
