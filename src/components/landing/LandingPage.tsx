@@ -16,8 +16,13 @@ import {
   Search
 } from 'lucide-react';
 import { SERVICE_CATEGORIES } from '../../lib/constants';
+import Atinuda2025 from '../atinuda/Atinuda2025'; // Import the Atinuda2025 component
+import WhyChooseUs from './WhyChooseUs'; // Import WhyChooseUs component
+import Footer from '../Footer'; // Import Footer component
+import Navigation from '../Navigation'; //import Navigation component
 
 export default function LandingPage() {
+  // const [searchQuery, setSearchQuery] = useState(''); // remove unused searchQuery
   const [searchQuery, setSearchQuery] = useState('');
 
   const features = [
@@ -42,8 +47,26 @@ export default function LandingPage() {
     {
       icon: MessageSquare,
       title: 'Real-time Collaboration',
-      description: 'Communicate and collaborate in real-time with built-in messaging tools. Stay connected and keep your projects on track, every step of the way.',
+      description: 'Communicate and collaborate with clients and vendors seamlessly using our integrated messaging system. Keep all your project communications in one place.',
       color: 'bg-pink-500'
+    },
+    {
+      icon: Award,
+      title: 'Verified Professionals',
+      description: 'Rest assured knowing you are hiring from a pool of verified and highly-rated event professionals. Quality and reliability guaranteed.',
+      color: 'bg-yellow-500'
+    },
+    {
+      icon: TrendingUp,
+      title: 'Boost Your Business',
+      description: 'For professionals, EventWork is your platform to reach more clients, showcase your portfolio, and grow your event business faster than ever.',
+      color: 'bg-orange-500'
+    },
+    {
+      icon: CheckCircle,
+      title: 'Project Management Tools',
+      description: 'Manage your event projects efficiently with our built-in project management tools. From milestones to deadlines, stay organized and in control.',
+      color: 'bg-teal-500'
     }
   ];
 
@@ -89,13 +112,16 @@ export default function LandingPage() {
 
   return (
     <div className="bg-white">
+      <Navigation />
       {/* Hero Section */}
       <div className="relative overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center z-0"
           style={{
-            backgroundImage: 'url(https://images.unsplash.com/photo-1505236858219-8359eb29e329?ixlib=rb-1.2.1&auto=format&fit=crop&w=2000&q=80)',
-            filter: 'brightness(0.4)'
+            filter: 'brightness(0.6)', // Slightly brighter image
+            backgroundBlendMode: 'soft-light, overlay', // Blend modes
+            backgroundColor: 'rgba(0, 0, 0, 0.2)', // Slightly lighter overlay
+            backgroundImage: 'linear-gradient(to right, #4f46e5, #3b82f6)' // Example gradient (indigo to blue)
           }}
         />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -106,17 +132,17 @@ export default function LandingPage() {
               transition={{ duration: 0.8 }}
               className="text-center"
             >
-              <h1 className="text-4xl tracking-tight font-extrabold text-white sm:text-5xl md:text-6xl">
-                <span className="block">Find the perfect event professional, or</span>
-                <span className="block text-indigo-400">Get hired for your expertise.</span>
+              <h1 className="text-4xl tracking-tight font-extrabold text-white sm:text-5xl md:text-6xl font-serif-heading">
+                <span className="block">Hire Top Event Talent &</span>
+                <span className="block text-indigo-400">Find Your Dream Event Job.</span>
               </h1>
               <p className="mt-6 max-w-lg mx-auto text-xl text-gray-300 sm:max-w-3xl">
-                EventWork is the leading platform connecting clients with talented event professionals. Post jobs, submit proposals, and collaborate seamlessly.
+                Connect with vetted event planners, vendors, and freelancers. Clients post jobs and manage proposals, while professionals showcase expertise and get hired.
               </p>
               {/* Search Bar */}
               <motion.form
                 onSubmit={handleSearchSubmit}
-                className="mt-8 max-w-lg mx-auto w-full"
+                className="mt-8 max-w-md mx-auto w-full"
               >
                 <div className="relative">
                   <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
@@ -126,7 +152,7 @@ export default function LandingPage() {
                     type="search"
                     name="search"
                     id="search"
-                    placeholder="Search for event jobs or professionals"
+                    placeholder="Try 'Wedding Planner in Lagos' or 'Corporate Event Planner'"
                     className="block w-full rounded-full border-0 bg-white py-2 pl-10 pr-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -151,10 +177,10 @@ export default function LandingPage() {
                   whileTap={{ scale: 0.95 }}
                 >
                   <Link
-                    to="/signin"
-                    className="inline-flex items-center px-8 py-3 border border-gray-300 text-base font-medium rounded-full text-white bg-transparent hover:bg-white hover:text-gray-900 transition-colors"
-                  >
-                    Sign In
+                  to="/signin"
+                  className="inline-flex items-center px-8 py-3 border border-gray-300 text-base font-medium rounded-full text-white bg-transparent hover:bg-white hover:text-gray-900 transition-colors"
+                >
+                  Login
                   </Link>
                 </motion.div>
               </div>
@@ -204,20 +230,50 @@ export default function LandingPage() {
       {/* Stats Section */}
       <div className="bg-indigo-900 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
-            {stats.map((stat, index) => (
-              <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                className="text-center"
-              >
-                <div className="text-3xl font-extrabold text-white">{stat.value}</div>
-                <div className="mt-2 text-sm text-indigo-200">{stat.label}</div>
-              </motion.div>
-            ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              viewport={{ once: true }}
+              className="text-center"
+            >
+              <div className="text-3xl font-extrabold text-white">10K+</div>
+              <div className="mt-2 text-sm text-indigo-200">Active Users</div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              viewport={{ once: true }}
+              className="text-center"
+            >
+              <div className="text-3xl font-extrabold text-white">$2M+</div>
+              <div className="mt-2 text-sm text-indigo-200">Transactions</div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              viewport={{ once: true }}
+              className="text-center"
+            >
+              <div className="text-3xl font-extrabold text-white">95%</div>
+              <div className="mt-2 text-sm text-indigo-200">Satisfaction Rate</div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              viewport={{ once: true }}
+              className="text-center"
+            >
+              <div className="text-3xl font-extrabold text-white">50+</div>
+              <div className="mt-2 text-sm text-indigo-200">Countries</div>
+            </motion.div>
           </div>
         </div>
       </div>
@@ -225,26 +281,24 @@ export default function LandingPage() {
       {/* Features Section */}
       <div className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              viewport={{ once: true }}
-            >
-              <h2 className="text-3xl font-extrabold text-gray-900">
-                Powering the event industry with innovation
-              </h2>
-              <p className="mt-4 text-xl text-gray-600">
-                Explore the features that make EventWork the platform of choice for event professionals and businesses.
-              </p>
-            </motion.div>
-          </div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            viewport={{ once: true }}
+            className="text-center"
+          >
+            <h2 className="text-3xl font-extrabold text-gray-900">
+              Powering the event industry with innovation
+            </h2>
+            <p className="mt-4 text-xl text-gray-600">
+              Explore the features that make EventWork the platform of choice for event professionals and businesses.
+            </p>
+          </motion.div>
 
           <div className="mt-20">
             <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
               {features.map((feature, index) => {
-                const Icon = feature.icon;
                 return (
                   <motion.div
                     key={feature.title}
@@ -252,11 +306,11 @@ export default function LandingPage() {
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: index * 0.1 }}
                     viewport={{ once: true }}
-                    whileHover={{ y: -8 }}
+                    whileHover={{ scale: 1.05, y: -8 }}
                     className="relative bg-white p-6 rounded-xl shadow-sm hover:shadow-lg transition-all"
                   >
                     <div className={`absolute top-6 left-6 p-3 rounded-lg ${feature.color} bg-opacity-10`}>
-                      <Icon className={`h-6 w-6 ${feature.color.replace('bg-', 'text-')}`} />
+                      <feature.icon className={`h-6 w-6 ${feature.color.replace('bg-', 'text-')}`} />
                     </div>
                     <div className="pt-12">
                       <h3 className="text-lg font-semibold text-gray-900">
@@ -274,24 +328,26 @@ export default function LandingPage() {
         </div>
       </div>
 
+      {/* Why Choose Us Section */}
+      <WhyChooseUs />
+
       {/* Testimonials */}
       <div className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              viewport={{ once: true }}
-            >
-              <h2 className="text-3xl font-extrabold text-gray-900">
-                See what our community is saying
-              </h2>
-              <p className="mt-4 text-xl text-gray-600">
-                Real stories from event professionals and clients who are transforming their businesses with EventWork.
-              </p>
-            </motion.div>
-          </div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-3xl font-extrabold text-gray-900">
+              What Our Users Say
+            </h2>
+            <p className="mt-4 text-xl text-gray-600">
+              Hear from event professionals and clients who trust EventWork
+            </p>
+          </motion.div>
 
           <div className="mt-20">
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
@@ -329,6 +385,11 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Atinuda2025 Section */}
+      <div className="mt-24">
+        <Atinuda2025 />
       </div>
 
       {/* CTA Section */}
@@ -371,6 +432,7 @@ export default function LandingPage() {
           </div>
         </div>
       </div>
+       <Footer />
     </div>
   );
 }

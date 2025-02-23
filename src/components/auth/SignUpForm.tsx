@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, ReactNode } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { UserPlus, Mail, Lock, User, Briefcase, ArrowLeft, Home } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -10,7 +10,7 @@ export default function SignUpForm() {
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [role, setRole] = useState<'client' | 'vendor'>('client');
-  const [error, setError] = useState('');
+  const [error, setError] = useState<ReactNode>('');
   const [loading, setLoading] = useState(false);
   const { signUp } = useAuth();
 
@@ -50,27 +50,6 @@ export default function SignUpForm() {
         <span className="text-sm font-medium">Back to Home</span>
       </Link>
 
-      {/* Left side - Image */}
-      <div className="hidden lg:block lg:w-1/2 relative">
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{
-            backgroundImage: 'url(https://images.unsplash.com/photo-1505236858219-8359eb29e329?ixlib=rb-1.2.1&auto=format&fit=crop&w=2850&q=80)'
-          }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-b from-purple-900/90 to-indigo-900/90 mix-blend-multiply" />
-          <div className="absolute inset-0 flex items-center justify-center p-12">
-            <div className="max-w-xl text-center">
-              <h2 className="text-4xl font-bold text-white mb-6">
-                Start your journey with EventWork
-              </h2>
-              <p className="text-xl text-purple-100">
-                Whether you're planning events or offering services, we've got you covered
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Right side - Form */}
       <div className="flex-1 flex items-center justify-center p-8 sm:p-12 lg:p-16 bg-white dark:bg-gray-900">
@@ -223,6 +202,28 @@ export default function SignUpForm() {
             </p>
           </form>
         </motion.div>
+      </div>
+
+      {/* Left side - Image */}
+      <div className="hidden lg:block lg:w-1/2 relative">
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage: 'url(https://images.unsplash.com/photo-1505236858219-8359eb29e329?ixlib=rb-1.2.1&auto=format&fit=crop&w=2850&q=80)'
+          }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-b from-purple-900/90 to-indigo-900/90 mix-blend-multiply" />
+          <div className="absolute inset-0 flex items-center justify-center p-12">
+            <div className="max-w-xl text-center">
+              <h2 className="text-4xl font-bold text-white mb-6">
+                Start your journey with EventWork
+              </h2>
+              <p className="text-xl text-purple-100">
+                Whether you're planning events or offering services, we've got you covered
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

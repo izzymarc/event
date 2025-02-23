@@ -8,14 +8,12 @@ export default function Navbar() {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
 
-  const handleSearchSubmit = (event: React.FormEvent) => {
+    const handleSearchSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     // Implement header search functionality here, e.g., navigate to jobs page with search query
     console.log('Header Search query:', searchQuery);
-    // For now, let's just navigate to the jobs page (you can modify this)
-    window.location.href = `/jobs?search=${searchQuery}`;
+     window.location.href = `/jobs?search=${searchQuery}`;
   };
-
 
   return (
     <nav className="bg-white shadow-sm">
@@ -23,44 +21,28 @@ export default function Navbar() {
         <div className="flex justify-between h-16">
           {/* Left side - Logo and Navigation */}
           <div className="flex items-center">
-            <Link to={ROUTES.HOME} className="flex items-center font-bold text-indigo-600">
-              <span className="text-xl font-bold text-indigo-600">EventWork</span>
+            <Link to="/" className="flex-shrink-0">
+              <span className='text-xl font-bold text-indigo-600'>EventWork</span>
             </Link>
-            <div className="hidden md:flex md:space-x-6 ml-8">
-              <Link to={ROUTES.JOBS} className="text-gray-700 hover:text-gray-900">
-                Find Talent
-              </Link>
-              <Link to={ROUTES.JOBS} className="text-gray-700 hover:text-gray-900">
-                Find Work
-              </Link>
-              <Link to={ROUTES.HOME} className="text-gray-700 hover:text-gray-900">
-                Why EventWork?
-              </Link>
-            </div>
           </div>
 
-          {/* Center - Search Bar (visible on larger screens) */}
-          <div className="hidden lg:flex lg:items-center lg:ml-auto">
-            <form onSubmit={handleSearchSubmit}>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                </div>
-                <input
-                  type="search"
-                  name="search"
-                  id="search"
-                  placeholder="Search for jobs or professionals"
-                  className="block w-full rounded-full border-gray-300 py-2 pl-10 pr-3 text-gray-900 placeholder-gray-500 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-            </form>
-          </div>
-
-          {/* Right side - Auth or User Menu */}
+          {/* Right side - Auth or User Menu, Search and Language Selector */}
           <div className="flex items-center space-x-4">
+            {/* Search Bar (visible on larger screens) */}
+            <form onSubmit={handleSearchSubmit} className="hidden lg:flex items-center">
+                <input
+                    type="search"
+                    name="search"
+                    id="search"
+                    placeholder="Search events, clients..."
+                    className="block w-full rounded-full border-gray-300 py-2 pl-10 pr-3 text-gray-900 placeholder-gray-500 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Search className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                </div>
+            </form>
             {user ? (
               <>
                 <button className="p-2 text-gray-400 hover:text-gray-500 relative">
@@ -103,6 +85,22 @@ export default function Navbar() {
                 </Link>
               </div>
             )}
+
+            {/* Language Selector Dropdown */}
+            <select
+              className="bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              defaultValue="en" // Default to English
+              onChange={(e) => {
+                const selectedLanguage = e.target.value;
+                console.log(`Language selected: ${selectedLanguage}`);
+                // In a real app, you would handle language switching logic here (e.g., using i18n library)
+              }}
+            >
+              <option value="en">English</option>
+              <option value="es">Español</option>
+              <option value="fr">Français</option>
+              {/* Add more language options as needed */}
+            </select>
           </div>
         </div>
       </div>

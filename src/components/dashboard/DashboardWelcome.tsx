@@ -4,7 +4,13 @@ import { Briefcase, MessageSquare } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 
-export const DashboardWelcome = ({ user }) => {
+interface DashboardWelcomeProps {
+  user: any; // TODO: Define User type
+  titleFontClass: string;
+  textFontClass: string;
+}
+
+export const DashboardWelcome: React.FC<DashboardWelcomeProps> = ({ user, titleFontClass, textFontClass }) => {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -13,10 +19,10 @@ export const DashboardWelcome = ({ user }) => {
     >
       <div className="absolute inset-0 bg-black opacity-10"></div>
       <div className="relative z-10">
-        <h1 className="text-3xl font-bold mb-2">
+        <h1 className={`text-3xl mb-2 ${titleFontClass}`}>
           Welcome back, {user?.full_name?.split(' ')[0]}!
         </h1>
-        <p className="text-indigo-100 text-lg">
+        <p className={`text-lg ${textFontClass}`}>
           {user?.role === 'client'
             ? "Here's what's happening with your projects today"
             : "Here's your professional overview for today"}

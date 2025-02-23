@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import {
   LayoutDashboard,
@@ -8,7 +8,9 @@ import {
   MessageSquare,
   CreditCard,
   Settings,
-  LogOut
+  LogOut,
+  Calendar,
+  TrendingUp
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -17,22 +19,16 @@ export default function Sidebar() {
 
   const navigation = [
     {
-      name: 'Dashboard',
+      name: 'Overview',
       href: '/dashboard',
       icon: LayoutDashboard,
       current: location.pathname === '/dashboard'
     },
     {
-      name: 'Jobs',
-      href: '/jobs',
-      icon: Briefcase,
-      current: location.pathname === '/jobs'
-    },
-    {
-      name: 'Proposals',
-      href: '/proposals',
-      icon: FileText,
-      current: location.pathname === '/proposals'
+      name: 'Schedule',
+      href: '/schedule', // Changed from /jobs
+      icon: Calendar, // Changed icon
+      current: location.pathname === '/schedule' // Updated path
     },
     {
       name: 'Messages',
@@ -41,10 +37,10 @@ export default function Sidebar() {
       current: location.pathname === '/messages'
     },
     {
-      name: 'Payments',
-      href: '/payments',
-      icon: CreditCard,
-      current: location.pathname === '/payments'
+      name: 'Earnings',
+      href: '/earnings', // Changed from /payments
+      icon: TrendingUp,  // Changed icon
+      current: location.pathname === '/earnings' // Updated path
     },
     {
       name: 'Settings',
@@ -61,18 +57,21 @@ export default function Sidebar() {
           {navigation.map((item) => {
             const Icon = item.icon;
             return (
-              <Link
+              <NavLink
                 key={item.name}
                 to={item.href}
-                className={`flex items-center p-3 text-base font-normal rounded-lg ${
-                  item.current
-                    ? 'bg-indigo-50 text-indigo-600'
-                    : 'text-gray-900 hover:bg-gray-100'
-                }`}
+                
+                className={({ isActive }) =>
+                  `flex items-center p-3 text-base font-normal rounded-lg ${
+                    isActive
+                      ? 'bg-indigo-50 text-indigo-600'
+                      : 'text-gray-900 hover:bg-gray-100'
+                  }`
+                }
               >
                 <Icon className={`w-6 h-6 ${item.current ? 'text-indigo-600' : 'text-gray-500'}`} />
                 <span className="ml-3">{item.name}</span>
-              </Link>
+              </NavLink>
             );
           })}
         </div>

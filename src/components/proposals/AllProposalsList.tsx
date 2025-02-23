@@ -3,12 +3,9 @@ import { useProposals } from '../../lib/hooks/useProposals';
 import { LoadingPage } from '../ui/LoadingSpinner';
 import { formatCurrency } from '../../lib/utils';
 
-interface ProposalListProps {
-  jobId?: string;
-}
-
-export default function ProposalList({ jobId }: ProposalListProps) {
-  const { proposals, loading, error } = useProposals(jobId);
+export default function AllProposalsList() {
+  // Call useProposals without jobId to fetch all proposals
+  const { proposals, loading, error } = useProposals();
 
   if (loading) {
     return <LoadingPage />;
@@ -19,13 +16,13 @@ export default function ProposalList({ jobId }: ProposalListProps) {
   }
 
   if (!proposals || proposals.length === 0) {
-    return <div>No proposals have been submitted for this job yet.</div>;
+    return <div>No proposals have been submitted yet.</div>;
   }
 
   return (
     <div className="bg-white shadow rounded-lg">
       <div className="px-4 py-5 sm:px-6">
-        <h3 className="text-lg font-medium text-gray-900">Proposals</h3>
+        <h3 className="text-lg font-medium text-gray-900">All Proposals</h3>
       </div>
       <div className="border-t border-gray-200">
         <ul className="divide-y divide-gray-200">

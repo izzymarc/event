@@ -4,6 +4,10 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
+      fontFamily: {
+        'serif-heading': ['ui-serif', 'Georgia', 'Cambria', '"Times New Roman"', 'Times', 'serif'], // Elegant serif for headings
+        sans: ['ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Arial', 'sans-serif'], // Default sans-serif
+      },
       colors: {
         // You can customize your dark mode colors here
         dark: {
@@ -20,6 +24,24 @@ export default {
           900: '#1a1a1a',
           950: '#0d0d0d',
         },
+        accent: { // Teal color palette
+          50: '#f0fdfa',
+          100: '#e0fcec',
+          200: '#bef2f0',
+          300: '#8eeef0',
+          400: '#5ee7df',
+          500: '#34d3c9',
+          600: '#2dd4bf',
+          700: '#25c2a8',
+          800: '#16a38a',
+          900: '#0f766e',
+          950: '#083344',
+        },
+      },
+      fontFamily: {
+        'serif-heading': ['ui-serif', 'Georgia', 'Cambria', '"Times New Roman"', 'Times', 'serif'],
+        sans: ['ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Arial', 'sans-serif'],
+        'heading': ['"serif-heading"', 'serif'], // Apply serif-heading to 'heading' class
       },
     },
   },

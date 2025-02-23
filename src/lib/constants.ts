@@ -42,18 +42,20 @@ export const ROUTES = {
   SETTINGS: '/settings',
 } as const;
 
+import { Home, Utensils, Mic, Camera, Palette, CalendarCheck, Users2, Headphones, Megaphone, Package } from 'lucide-react';
+
 // Service Categories - Renamed and Updated
 export const SERVICE_CATEGORIES = [
-  { id: 'venue', name: 'Venue' },
-  { id: 'catering', name: 'Catering' },
-  { id: 'entertainment', name: 'Entertainment' },
-  { id: 'photography', name: 'Photography & Videography' },
-  { id: 'decor', name: 'Decor & Design' },
-  { id: 'planning', name: 'Event Planning' },
-  { id: 'staffing', name: 'Staffing & Support' },
-  { id: 'tech_av', name: 'Tech & AV' },
-  { id: 'marketing_pr', name: 'Marketing & PR' },
-  { id: 'other_service', name: 'Other Services' },
+  { id: 'venue', name: 'Venue', icon: Home },
+  { id: 'catering', name: 'Catering', icon: Utensils },
+  { id: 'entertainment', name: 'Entertainment', icon: Mic },
+  { id: 'photography', name: 'Photography & Videography', icon: Camera },
+  { id: 'decor', name: 'Decor & Design', icon: Palette },
+  { id: 'planning', name: 'Event Planning', icon: CalendarCheck },
+  { id: 'staffing', name: 'Staffing & Support', icon: Users2 },
+  { id: 'tech_av', name: 'Tech & AV', icon: Headphones },
+  { id: 'marketing_pr', name: 'Marketing & PR', icon: Megaphone },
+  { id: 'other_service', name: 'Other Services', icon: Package },
 ] as const;
 
 // Event Types

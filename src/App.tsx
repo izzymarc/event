@@ -1,3 +1,4 @@
+import React from 'react';
 import { Suspense, lazy, memo } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
@@ -10,6 +11,7 @@ import { ToastContainer } from './components/ui/Toast';
 import { useToast } from './lib/hooks/useToast';
 import { ROUTES } from './lib/constants';
 import { LoadingPage } from './components/ui/LoadingSpinner';
+import EventWorkDashboard from './components/eventworkDashboard/EventWorkDashboard'; // Import EventWorkDashboard
 
 // Lazy load components
 const LandingPage = lazy(() => import('./components/landing/LandingPage'));
@@ -17,7 +19,7 @@ const SignInForm = lazy(() => import('./components/auth/SignInForm'));
 const SignUpForm = lazy(() => import('./components/auth/SignUpForm'));
 const ForgotPasswordForm = lazy(() => import('./components/auth/ForgotPasswordForm'));
 const ResetPasswordForm = lazy(() => import('./components/auth/ResetPasswordForm'));
-const Dashboard = lazy(() => import('./components/dashboard/Dashboard'));
+// const Dashboard = lazy(() => import('./components/dashboard/Dashboard')); // Comment out original Dashboard import
 const JobMarketplace = lazy(() => import('./components/jobs/JobMarketplace'));
 const JobDetailsPage = lazy(() => import('./components/jobs/JobDetailsPage'));
 const ProposalList = lazy(() => import('./components/proposals/ProposalList'));
@@ -26,7 +28,7 @@ const PaymentCenter = lazy(() => import('./components/payments/PaymentCenter'));
 const UserProfile = lazy(() => import('./components/profile/UserProfile'));
 const Settings = lazy(() => import('./components/settings/Settings'));
 
-const PrivateRoute = memo(({ children }: { children: React.ReactNode }) => {
+const PrivateRoute: React.FC<{ children: React.ReactNode }> = memo(({ children }) => {
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -41,8 +43,7 @@ const PrivateRoute = memo(({ children }: { children: React.ReactNode }) => {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Navbar />
       <div className="flex">
-        <Sidebar />
-        <main className="flex-1 p-6 overflow-auto">
+        <main className="flex-1 p-6 overflow-auto relative z-10">
           <ErrorBoundary>{children}</ErrorBoundary>
         </main>
       </div>
@@ -52,7 +53,7 @@ const PrivateRoute = memo(({ children }: { children: React.ReactNode }) => {
 
 PrivateRoute.displayName = 'PrivateRoute';
 
-const PublicRoute = memo(({ children }: { children: React.ReactNode }) => {
+const PublicRoute: React.FC<{ children: React.ReactNode }> = memo(({ children }) => {
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -63,7 +64,9 @@ const PublicRoute = memo(({ children }: { children: React.ReactNode }) => {
     return <Navigate to={ROUTES.DASHBOARD} replace />;
   }
 
-  return <ErrorBoundary>{children}</ErrorBoundary>;
+  return (
+    <ErrorBoundary>{children}</ErrorBoundary>
+  );
 });
 
 PublicRoute.displayName = 'PublicRoute';
@@ -115,7 +118,7 @@ export default function App() {
                   path={ROUTES.DASHBOARD}
                   element={
                     <PrivateRoute>
-                      <Dashboard />
+                      <EventWorkDashboard /> {/* Use EventWorkDashboard here */}
                     </PrivateRoute>
                   }
                 />
@@ -127,7 +130,7 @@ export default function App() {
                     </PrivateRoute>
                   }
                 />
-                 <Route
+                <Route
                   path="/jobs/:jobId"
                   element={
                     <PrivateRoute>

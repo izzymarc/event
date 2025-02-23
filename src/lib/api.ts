@@ -1,5 +1,8 @@
 // Add to existing api.ts file
-export async function updateProfile(userId: string, data: any) {
+import { ProfileData, UserSettings } from './types';
+import { supabase } from './supabase';
+
+export async function updateProfile(userId: string, data: ProfileData) {
   try {
     const { error: userError } = await supabase
       .from('users')
@@ -24,13 +27,17 @@ export async function updateProfile(userId: string, data: any) {
     if (profileError) throw profileError;
 
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error updating profile:', error);
-    throw new Error(error.message || 'Failed to update profile');
+    let message = 'Failed to update profile';
+    if (error instanceof Error) {
+      message = error.message;
+    }
+    throw new Error(message);
   }
 }
 
-export async function updateUserSettings(userId: string, settings: any) {
+export async function updateUserSettings(userId: string, settings: UserSettings) {
   try {
     const { error } = await supabase
       .from('user_settings')
@@ -43,9 +50,13 @@ export async function updateUserSettings(userId: string, settings: any) {
 
     if (error) throw error;
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error updating settings:', error);
-    throw new Error(error.message || 'Failed to update settings');
+    let message = 'Failed to update settings';
+    if (error instanceof Error) {
+      message = error.message;
+    }
+    throw new Error(message);
   }
 }
 

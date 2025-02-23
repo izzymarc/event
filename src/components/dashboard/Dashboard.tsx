@@ -10,8 +10,16 @@ import { StatsGrid } from './StatsGrid';
 import { PerformanceChart } from './PerformanceChart';
 import { KeyMetrics } from './KeyMetrics';
 import { RecentActivity } from './RecentActivity';
-import { UpcomingDeadlines } from './UpcomingDeadlines';
 import { LoadingPage } from '../ui/LoadingSpinner';
+
+const titleFontClass = 'font-semibold text-gray-900 dark:text-white';
+const textFontClass = 'text-gray-500 dark:text-gray-400';
+const valueFontClass = 'text-3xl font-bold text-gray-900 dark:text-white';
+const statFontClass = 'text-sm font-medium text-gray-500 dark:text-gray-400';
+const cardClass = 'bg-white dark:bg-gray-800 shadow-sm rounded-xl p-4';
+const sectionClass = 'mb-8';
+const sectionTitleClass = 'text-2xl font-bold text-gray-900 dark:text-white mb-4';
+const sectionDescriptionClass = 'text-gray-600 dark:text-gray-400 mb-6';
 
 // Define interfaces for data structures
 interface Stat {
@@ -21,6 +29,8 @@ interface Stat {
   change: string;
   changeType: 'increase' | 'decrease';
   color: string;
+  metric: string;
+  comparison: string;
 }
 
 interface ActivityItem {
@@ -46,163 +56,111 @@ export default function Dashboard() {
   const { user } = useAuth();
   const [selectedPeriod, setSelectedPeriod] = useState('week');
   const [loading, setLoading] = useState(true);
-  const [dashboardData, setDashboardData] = useState<{
+    const [activeJobsFilter, setActiveJobsFilter] = useState('All Types');
+
+  //Update Key Metrics
+  interface DashboardData {
     stats: Stat[];
     recentActivity: ActivityItem[];
-    upcomingDeadlines: DeadlineItem[]; // Use the new interface
-    performanceMetrics: {
-      completionRate: number;
-      responseTime: string;
-      clientSatisfaction: number;
-      activeProjects: number;
+    upcomingDeadlines: DeadlineItem[];
+    keyMetrics: { // Added keyMetrics to the interface
+      earningsThisMonth: number;
+      earningsChange: number;
+      activeJobs: number;
+      activeJobsChange: number;
+      successRate: number;
+      successRateChange: number;
     };
-    earnings: {
-      total: number;
-      thisMonth: number;
-      pending: number;
-      projected: number;
-    };
-  }>({
+  }
+
+  const [dashboardData, setDashboardData] = useState<DashboardData>({
     stats: [],
     recentActivity: [],
-    upcomingDeadlines: [], // Initialize as empty array
-    performanceMetrics: {
-      completionRate: 92,
-      responseTime: '2.5h',
-      clientSatisfaction: 4.8,
-      activeProjects: 5
+    upcomingDeadlines: [],
+    keyMetrics: { // Initialize keyMetrics with default values
+      earningsThisMonth: 0,
+      earningsChange: 0,
+      activeJobs: 0,
+      activeJobsChange: 0,
+      successRate: 0,
+      successRateChange: 0,
     },
-    earnings: {
-      total: 12500,
-      thisMonth: 2800,
-      pending: 1500,
-      projected: 3500
-    }
   });
 
   useEffect(() => {
-    fetchDashboardData();
+    if (user) {
+      fetchDashboardData();
+    }
   }, [user]);
 
-  async function fetchDashboardData() {
+  const createStat = (name: string, value: string | number, icon: React.ElementType, change: string, changeType: 'increase' | 'decrease', color: string, metric: string, comparison: string) => {
+    return { name, value, icon, change, changeType, color, metric, comparison };
+  };
+
+      let submittedProposals: any = []; 
+async function fetchDashboardData() {
+    if (!user) return;
+
+    let submittedProposals: any = []; // Declaring submittedProposals here
+
+    //for calculating the change
+    const today = new Date();
+    const firstDayOfCurrentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const firstDayOfLastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+    const lastDayOfLastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+
+    let submittedProposals: any = []; // Moved outside the if/else and initialized
+
     try {
-      if (user?.role === 'client') {
-        // Fetch client-specific data
-        const { data: postedJobs, error: postedJobsError } = await supabase
-          .from('jobs')
-          .select(`
-            *,
-            proposals(
-              count,
-              vendor:users!proposals_vendor_id_fkey(full_name)
-            )
-          `)
-          .eq('client_id', user.id)
-          .order('created_at', { ascending: false });
-        if (postedJobsError) throw postedJobsError;
-
-
-        const { data: proposals, error: proposalsError } = await supabase
-          .from('proposals')
-          .select(`
-            *,
-            jobs (title),
-            vendor:users!proposals_vendor_id_fkey(full_name)
-          `)
-          .eq('jobs.client_id', user.id);
-
-          if(proposalsError) throw proposalsError;
-
-        const recentActivity: ActivityItem[] = [];
-
-        // Add recent job postings
-        postedJobs?.slice(0, 3).forEach(job => {
-          recentActivity.push({
-            id: job.id,
-            type: 'job',
-            title: `New job posted: ${job.title}`,
-            time: getRelativeTime(job.created_at),
-            status: job.status,
-            budget: formatCurrency(job.budget),
-          });
-        });
-
-        // Add recent proposals
-        proposals?.slice(0, 3).forEach(proposal => {
-          recentActivity.push({
-            id: proposal.id,
-            type: 'proposal',
-            title: `New proposal for ${proposal.jobs?.title} from ${proposal.vendor?.full_name}`,
-            time: getRelativeTime(proposal.created_at),
-            vendorName: proposal.vendor?.full_name,
-          });
-        });
-
-        // Sort recent activity by time (most recent first)
-        recentActivity.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
-
-
-        setDashboardData(prev => ({
-          ...prev,
-          stats: [
-            {
-              name: 'Active Projects',
-              value: postedJobs?.filter(job => job.status === 'active').length || 0,
-              icon: Briefcase,
-              change: '+2.5%',
-              changeType: 'increase',
-              color: 'bg-blue-500'
-            },
-            {
-              name: 'Total Proposals',
-              value: proposals?.length || 0, // Use proposals data
-              icon: FileText,
-              change: '+18.3%',
-              changeType: 'increase',
-              color: 'bg-purple-500'
-            },
-            {
-              name: 'Hired Vendors',
-              value: proposals?.filter(p => p.status === 'accepted').length || 0, // Use proposals data
-              icon: Users,
-              change: '+12.5%',
-              changeType: 'increase',
-              color: 'bg-green-500'
-            },
-            {
-              name: 'Total Spent',
-              value: formatCurrency(proposals?.reduce((acc, p) => acc + (p.status === 'completed' ? p.price : 0), 0) || 0), // Use proposals data
-              icon: CreditCard,
-              change: '+4.1%',
-              changeType: 'increase',
-              color: 'bg-indigo-500'
-            }
-          ],
-          recentActivity: recentActivity,
-          upcomingDeadlines: [] // Populate with actual deadline data later
-        }));
+      if (user && user.role === 'client') {
+        // Client dashboard - to be implemented later
       } else {
-        // Fetch vendor-specific data
-        const { data: submittedProposals, error: submittedProposalsError } = await supabase
+        // Vendor dashboard
+        const { data: submittedProposalsData, error: submittedProposalsError } = await supabase
           .from('proposals')
-          .select(`
-            *,
-            jobs (title, budget, deadline, client:users!jobs_client_id_fkey(full_name))
-          `)
+          .select(`*, jobs!inner(title, budget, deadline, client_id, clients:users(full_name), status)`)
           .eq('vendor_id', user.id);
         if (submittedProposalsError) throw submittedProposalsError;
+        submittedProposals = submittedProposalsData;
 
-        const { data: activeJobs, error: activeJobsError } = await supabase
+        // ... (rest of the vendor dashboard data fetching logic - same as before, but ONLY ONCE) ...
+         // Fetch active jobs with client information and order by creation date
+        let { data: activeJobs, error: activeJobsError } = await supabase
           .from('jobs')
-          .select('*, client:users(full_name)') // Include client full_name in jobs query
-          .eq('status', 'active')
+          .select('*, client:users(full_name)')
+          .in('status', ['active', 'in_progress'])
           .order('created_at', { ascending: false });
+
         if (activeJobsError) throw activeJobsError;
 
-        const recentActivity: ActivityItem[] = [];
+        // Fetch earnings data for vendors
+        const { data: vendorPayments, error: vendorPaymentsError } = await supabase
+          .from('payments')
+          .select('*')
+          .eq('vendor_id', user.id);
+        if (vendorPaymentsError) throw vendorPaymentsError;
 
-        // Add recent proposals
-        submittedProposals?.slice(0, 3).forEach(proposal => {
+        const totalEarnings = vendorPayments?.reduce((sum: number, payment: any) => sum + payment.amount, 0) || 0;
+        const thisMonthEarnings = vendorPayments?.filter((payment: any) => new Date(payment.created_at).getMonth() === new Date().getMonth()).reduce((sum: number, payment: any) => sum + payment.amount, 0) || 0;
+        const lastMonthEarnings = vendorPayments?.filter((payment: any) => { const paymentDate = new Date(payment.created_at); return paymentDate >= firstDayOfLastMonth && paymentDate <= lastDayOfLastMonth; }).reduce((sum: number, payment: any) => sum + payment.amount, 0) || 0;
+        const earningsChange = lastMonthEarnings === 0 ? 100 : ((thisMonthEarnings - lastMonthEarnings) / lastMonthEarnings) * 100;
+        const pendingEarnings = submittedProposals?.filter((proposal: any) => proposal.status === 'pending_payment').reduce((sum: number, proposal: any) => sum + (proposal.jobs?.budget || 0), 0) || 0;
+        const projectedEarnings = pendingEarnings;
+        const activeJobsCount = submittedProposals?.filter((proposal:any) => proposal.jobs?.status === 'active').length || 0;
+
+
+        const keyMetrics = {
+          earningsThisMonth: thisMonthEarnings,
+          earningsChange: earningsChange,
+          activeJobs: activeJobsCount,
+          activeJobsChange: 5, //Dummy
+          successRate: 94, //Dummy
+          successRateChange: 2 //Dummy
+        };
+
+
+        const recentActivity: ActivityItem[] = [];
+        submittedProposals?.slice(0, 3).forEach((proposal: any) => {
           recentActivity.push({
             id: proposal.id,
             type: 'proposal',
@@ -211,9 +169,7 @@ export default function Dashboard() {
             clientName: proposal.jobs?.client?.full_name,
           });
         });
-
-        // Add recent job postings
-        activeJobs?.slice(0, 3).forEach(job => {
+        activeJobs?.slice(0, 3).forEach((job: any) => {
           recentActivity.push({
             id: job.id,
             type: 'job',
@@ -224,89 +180,117 @@ export default function Dashboard() {
             clientName: job.client?.full_name,
           });
         });
-
-        // Sort recent activity by time (most recent first)
         recentActivity.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
 
-        setDashboardData(prev => ({
+
+        setDashboardData((prev) => ({
           ...prev,
           stats: [
-            {
-              name: 'Available Jobs',
-              value: activeJobs?.length || 0,
-              icon: Briefcase,
-              change: '+5.2%',
-              changeType: 'increase',
-              color: 'bg-blue-500'
-            },
-            {
-              name: 'Success Rate',
-              value: `${Math.round((submittedProposals?.filter(p => p.status === 'accepted').length || 0) / (submittedProposals?.length || 1) * 100)}%`,
-              icon: Target,
-              change: '+15.3%',
-              changeType: 'increase',
-              color: 'bg-green-500'
-            },
-            {
-              name: 'Response Rate',
-              value: '94%',
-              icon: Zap,
-              change: '+8.1%',
-              changeType: 'increase',
-              color: 'bg-purple-500'
-            },
-            {
-              name: 'Global Rank',
-              value: '#128',
-              icon: Globe,
-              change: '+12.4%',
-              changeType: 'increase',
-              color: 'bg-indigo-500'
-            }
+            createStat('Job Success Score', '98%', Award, '+2.1%', 'increase', 'bg-green-500', 'Score', '96%'),
+            createStat('Response Time', '1.2h', Clock, '-15%', 'decrease', 'bg-purple-500', 'Avg', '1.4h'),
+            createStat('Top Rated', '4.9', Star, '+0.3%', 'increase', 'bg-indigo-500', 'Stars', '4.8'),
+            createStat('Earnings', formatCurrency(totalEarnings), DollarSign, '+18.4%', 'increase', 'bg-blue-500', 'Total', formatCurrency(10500))
           ],
           recentActivity: recentActivity,
-          upcomingDeadlines: [] // Populate with actual deadline data later
+          upcomingDeadlines: [],
+          keyMetrics: keyMetrics,
         }));
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching dashboard data:', error);
+      setDashboardData({
+        stats: [],
+        recentActivity: [],
+        upcomingDeadlines: [],
+        keyMetrics: {
+          earningsThisMonth: 0,
+          earningsChange: 0,
+          activeJobs: 0,
+          activeJobsChange: 0,
+          successRate: 0,
+          successRateChange: 0,
+        },
+      });
+      alert('Error fetching dashboard data. Please try again later.');
     } finally {
       setLoading(false);
     }
   }
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-      </div>
-    );
+    return <LoadingPage />;
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      {/* Welcome Section */}
-      <DashboardWelcome user={user} />
-
-      {/* Stats Grid */}
-      <StatsGrid stats={dashboardData.stats} />
-
-      {/* Performance Metrics */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-        {/* Chart Card */}
-        <PerformanceChart selectedPeriod={selectedPeriod} setSelectedPeriod={setSelectedPeriod} />
-
-        {/* Key Metrics */}
-        <KeyMetrics performanceMetrics={dashboardData.performanceMetrics} />
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="flex justify-between items-center mb-8 px-4">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white/90">
+          Dashboard
+        </h1>
       </div>
 
-      {/* Recent Activity & Upcoming Deadlines */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Recent Activity */}
-        <RecentActivity recentActivity={dashboardData.recentActivity} />
+      <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8">
+        <div>
+          <DashboardWelcome user={user} titleFontClass={titleFontClass} textFontClass={textFontClass} />
+        </div>
 
-        {/* Upcoming Deadlines */}
-        <UpcomingDeadlines upcomingDeadlines={dashboardData.upcomingDeadlines} />
+        <div className="space-y-6">
+          <StatsGrid stats={dashboardData.stats} cardClass={cardClass} valueFontClass={valueFontClass} statFontClass={statFontClass} />
+          <PerformanceChart selectedPeriod={selectedPeriod} setSelectedPeriod={setSelectedPeriod} cardClass={cardClass} titleFontClass={titleFontClass} textFontClass={textFontClass} />
+          <KeyMetrics {...dashboardData.keyMetrics} cardClass={cardClass} titleFontClass={titleFontClass} textFontClass={textFontClass} valueFontClass={valueFontClass} />
+          <RecentActivity recentActivity={dashboardData.recentActivity} />
+          <div className={cardClass}>
+              <h2 className={sectionTitleClass}>Active Jobs</h2>
+              <div className="mb-4">
+                  <label htmlFor="job-type-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Filter by Type:
+                  </label>
+                  <select
+                      id="job-type-filter"
+                      className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                      value={activeJobsFilter}
+                      onChange={(e) => setActiveJobsFilter(e.target.value)}
+                  >
+                      <option value="All Types">All Types</option>
+                      <option value="In Progress">In Progress</option>
+                      <option value="Pending">Pending</option>
+                      <option value="Proposal Sent">Proposal Sent</option>
+                  </select>
+              </div>
+              
+              {user?.role === 'vendor' ? (
+                  dashboardData.keyMetrics.activeJobs > 0 ? (
+                      <ul className="space-y-4">
+                          {submittedProposals?.filter(
+                              (proposal:any) => activeJobsFilter === "All Types" ||
+                              (activeJobsFilter === "In Progress" && proposal.jobs.status === "active") ||
+                              (activeJobsFilter === "Pending" && proposal.status === "pending_payment" ) ||
+                              (activeJobsFilter === "Proposal Sent" && proposal.status === "submitted")
+                          ).map((proposal:any) => (
+                              <li key={proposal.id} className="border-b border-gray-200 pb-4 last:border-0">
+                                  <div className="flex items-center justify-between">
+                                      <div>
+                                          <h3 className={titleFontClass}>{proposal.jobs.title}</h3>
+                                          <p className={textFontClass}>{proposal.jobs.client.full_name}</p>
+                                          <p className={textFontClass}>{proposal.jobs.location ? proposal.jobs.location: 'Remote'}</p>
+                                          <p className={textFontClass}>{proposal.jobs.deadline}</p>
+                                      </div>
+                                      <div>
+                                          <p className={valueFontClass}>{formatCurrency(proposal.jobs.budget)}</p>
+                                          <p className={statFontClass}>{proposal.status}</p>
+                                      </div>
+                                  </div>
+                              </li>
+                          ))}
+                      </ul>
+                  ) : (
+                      <p className={textFontClass}>No active jobs found.</p>
+                  )
+              ) : (
+                  <p className={textFontClass}>Active jobs information is displayed for vendors.</p>
+              )}
+          </div>
+        </div>
       </div>
     </div>
   );

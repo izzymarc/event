@@ -36,6 +36,27 @@ export default function CreateJob() {
     e.preventDefault();
     setLoading(true);
 
+    // Input validation
+    if (!formData.budget || parseFloat(formData.budget) <= 0) {
+      addToast('Budget must be a positive number', 'error');
+      setLoading(false);
+      return;
+    }
+
+    if (!formData.deadline) {
+      addToast('Deadline must be selected', 'error');
+      setLoading(false);
+      return;
+    }
+
+    const deadlineDate = new Date(formData.deadline);
+    if (deadlineDate <= new Date()) {
+      addToast('Deadline must be in the future', 'error');
+      setLoading(false);
+      return;
+    }
+
+
     try {
       // Prepare job data
       const jobData = {
@@ -43,7 +64,7 @@ export default function CreateJob() {
         title: formData.title,
         description: formData.description,
         category: formData.category,
-        event_type: formData.event_type, // Include event_type
+        event_type: formData.event_type, // Added event_type
         budget: parseFloat(formData.budget),
         deadline: formData.deadline,
         experience_level: formData.experienceLevel,
