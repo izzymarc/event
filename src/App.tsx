@@ -19,6 +19,21 @@ const SignInForm = lazy(() => import('./components/auth/SignInForm'));
 const SignUpForm = lazy(() => import('./components/auth/SignUpForm'));
 const ForgotPasswordForm = lazy(() => import('./components/auth/ForgotPasswordForm'));
 const ResetPasswordForm = lazy(() => import('./components/auth/ResetPasswordForm'));
+const AboutPage = lazy(() => import('./components/landing/AboutPage')); // Lazy load AboutPage
+const ContactPage = lazy(() => import('./components/landing/ContactPage')); // Lazy load ContactPage
+const PricingPage = lazy(() => import('./components/landing/PricingPage')); // Lazy load PricingPage
+const TermsPage = lazy(() => import('./components/landing/TermsPage')); // Lazy load TermsPage
+const PrivacyPolicyPage = lazy(() => import('./components/landing/PrivacyPolicyPage')); // Lazy load PrivacyPolicyPage
+const HelpPage = lazy(() => import('./components/landing/HelpPage')); // Lazy load HelpPage
+const FAQPage = lazy(() => import('./components/landing/FAQPage')); // Lazy load FAQPage
+const SitemapPage = lazy(() => import('./components/landing/SitemapPage')); // Lazy load SitemapPage
+const FeedbackPage = lazy(() => import('./components/landing/FeedbackPage')); // Lazy load FeedbackPage
+const ProfessionalsPage = lazy(() => import('./components/landing/ProfessionalsPage')); // Lazy load ProfessionalsPage
+const ProfessionalsFindJobsPage = lazy(() => import('./components/landing/ProfessionalsFindJobsPage')); // Lazy load ProfessionalsFindJobsPage
+const ProfessionalsCreateProfilePage = lazy(() => import('./components/landing/ProfessionalsCreateProfilePage')); // Lazy load ProfessionalsCreateProfilePage
+const ProfessionalsPricingPage = lazy(() => import('./components/landing/ProfessionalsPricingPage')); // Lazy load ProfessionalsPricingPage
+const ProfessionalsResourcesPage = lazy(() => import('./components/landing/ProfessionalsResourcesPage')); // Lazy load ProfessionalsResourcesPage
+
 // const Dashboard = lazy(() => import('./components/dashboard/Dashboard')); // Comment out original Dashboard import
 const JobMarketplace = lazy(() => import('./components/jobs/JobMarketplace'));
 const JobDetailsPage = lazy(() => import('./components/jobs/JobDetailsPage'));
@@ -82,6 +97,20 @@ export default function App() {
             <Suspense fallback={<LoadingPage />}>
               <Routes>
                 <Route path={ROUTES.HOME} element={<LandingPage />} />
+                <Route path="/about" element={<AboutPage />} /> {/* About page route */}
+                <Route path="/contact" element={<ContactPage />} /> {/* Contact page route */}
+                <Route path="/pricing" element={<PricingPage />} /> {/* Pricing page route */}
+                <Route path="/terms" element={<TermsPage />} /> {/* Terms page route */}
+                <Route path="/privacy" element={<PrivacyPolicyPage />} /> {/* Privacy Policy page route */}
+                <Route path="/help" element={<HelpPage />} /> {/* Help page route */}
+                <Route path="/faq" element={<FAQPage />} /> {/* FAQ page route */}
+                <Route path="/sitemap" element={<SitemapPage />} /> {/* Sitemap page route */}
+                <Route path="/feedback" element={<FeedbackPage />} /> {/* Feedback page route */}
+                <Route path="/professionals" element={<ProfessionalsPage />} /> {/* Professionals page route */}
+                <Route path="/professionals/find-jobs" element={<ProfessionalsFindJobsPage />} /> {/* Professionals Find Jobs page route */}
+                <Route path="/professionals/create-profile" element={<ProfessionalsCreateProfilePage />} /> {/* Professionals Create Profile page route */}
+                <Route path="/professionals/pricing" element={<ProfessionalsPricingPage />} /> {/* Professionals Pricing page route */}
+                <Route path="/professionals/resources" element={<ProfessionalsResourcesPage />} /> {/* Professionals Resources page route */}
                 <Route
                   path={ROUTES.SIGN_IN}
                   element={
